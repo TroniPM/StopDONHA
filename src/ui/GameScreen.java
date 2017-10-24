@@ -261,7 +261,7 @@ public class GameScreen extends javax.swing.JPanel {
         });
         add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 470, -1, -1));
 
-        jButton3.setText("Logs");
+        jButton3.setText("LOGS");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
@@ -347,7 +347,7 @@ public class GameScreen extends javax.swing.JPanel {
     }//GEN-LAST:event_jTextArea1KeyPressed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        JTextArea textArea = new JTextArea("AAAAAAAAEEEEEEEEEEEE");
+        JTextArea textArea = new JTextArea(Session.getLog());
         textArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setPreferredSize(new Dimension(500, 500));

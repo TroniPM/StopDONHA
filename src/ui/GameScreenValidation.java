@@ -4,7 +4,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.table.DefaultTableModel;
 import entidades.network.DataNetworkManager;
+import java.awt.Dimension;
 import java.util.Vector;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import util.Session;
 
 /**
@@ -134,6 +138,7 @@ public class GameScreenValidation extends javax.swing.JPanel {
         jButtonProxPlayer = new javax.swing.JButton();
         jButtonFinish = new javax.swing.JButton();
         jButtonAntPlayer = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
 
         setPreferredSize(new java.awt.Dimension(400, 300));
@@ -192,6 +197,14 @@ public class GameScreenValidation extends javax.swing.JPanel {
         });
         add(jButtonAntPlayer, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 250, -1, -1));
 
+        jButton2.setText("LOGS");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 440, -1, -1));
+
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagens/tela.png"))); // NOI18N
         jLabel2.setText("jLabel2");
         add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(-10, -20, -1, -1));
@@ -232,9 +245,21 @@ public class GameScreenValidation extends javax.swing.JPanel {
         preencherTabela();
     }//GEN-LAST:event_jButtonAntPlayerActionPerformed
 
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        JTextArea textArea = new JTextArea(Session.getLog());
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(500, 500));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JOptionPane.showMessageDialog(null, scrollPane, "Logs",
+                JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_jButton2ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButtonAntPlayer;
     private javax.swing.JButton jButtonFinish;
     private javax.swing.JButton jButtonProxPlayer;

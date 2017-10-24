@@ -22,4 +22,15 @@ public class EndRound implements Serializable {
                     + " | Aceitação-> " + objResposta.respostasAceitacao.get(i));
         }
     }
+
+    public String getRespostasEAceitacao() {
+        String a = "";
+        a = "NICKNAME: " + nickname + "\t" + "IP: " + ip + "\n\r";
+        for (int i = 0; i < objResposta.respostas.size(); i++) {
+            a += ("Resposta-> " + objResposta.respostas.get(i)
+                    + " | Aceitação-> " + objResposta.respostasAceitacao.get(i));
+        }
+
+        return a;
+    }
 }

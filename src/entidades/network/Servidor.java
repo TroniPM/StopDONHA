@@ -152,13 +152,13 @@ public class Servidor {
             @Override
             public void run() {
                 serverSocket = makeConnectionServer();
-                System.out.println("Ouvindo WaitingRoom.");
+                Session.addLog("Ouvindo WaitingRoom");
                 while (true) {
                     Socket socket = null;
                     try {
                         socket = serverSocket.accept();
                     } catch (IOException e) {
-                        System.out.println("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
+                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
                         break;
                     }
                     // new threa for a client
@@ -177,13 +177,13 @@ public class Servidor {
             @Override
             public void run() {
                 serverClientSocket = makeConnectionClientServer();
-                System.out.println("Ouvindo StartGame.");
+                Session.addLog("Ouvindo StartGame");
                 while (true) {
                     Socket socket = null;
                     try {
                         socket = serverClientSocket.accept();
                     } catch (IOException e) {
-                        System.out.println("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
+                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
                         break;
                     }
                     // new threa for a client
@@ -201,13 +201,13 @@ public class Servidor {
             @Override
             public void run() {
                 serverSocket = makeConnectionServer();
-                System.out.println("Ouvindo EndRound.");
+                Session.addLog("Ouvindo EndRound");
                 while (true) {
                     Socket socket = null;
                     try {
                         socket = serverSocket.accept();
                     } catch (IOException e) {
-                        System.out.println("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
+                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
                         break;
                     }
                     // new threa for a client
@@ -225,13 +225,13 @@ public class Servidor {
             @Override
             public void run() {
                 serverClientSocket = makeConnectionClientServer();
-                System.out.println("Ouvindo StartValidation.");
+                Session.addLog("Ouvindo StartValidation");
                 while (true) {
                     Socket socket = null;
                     try {
                         socket = serverClientSocket.accept();
                     } catch (IOException e) {
-                        System.out.println("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
+                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
                         break;
                     }
                     // new threa for a client
@@ -249,13 +249,13 @@ public class Servidor {
             @Override
             public void run() {
                 serverClientSocket = makeConnectionClientServer();
-                System.out.println("Ouvindo ListeningShowScore.");
+                Session.addLog("Ouvindo ListeningShowScore");
                 while (true) {
                     Socket socket = null;
                     try {
                         socket = serverClientSocket.accept();
                     } catch (IOException e) {
-                        System.out.println("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
+                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
                         break;
                     }
                     // new threa for a client
@@ -289,28 +289,32 @@ public class Servidor {
 
         public void userType(Object obj) {
             User data = (User) obj;
-            System.out.println("USER received = " + data.nickname);
+            Session.addLog("[OBJECT] recebido User " + data.nickname);
             networkClientsSockets.add(socket);
             Session.gRunTime.nicknamesNetwork.add(data.nickname);
         }
 
         public void endRoundType(Object obj) {
             EndRound objRecebido = (EndRound) obj;
-            if (Session.DEBUG) {
+            /*if (Session.DEBUG) {
                 System.out.println("------------------EndRound received--------------");
                 objRecebido.printRespostasEAceitacao();
                 System.out.println("--------------------------------------------------");
-            }
+            }*/
+            Session.addLog("[OBJECT] recebido EndRound");
+            Session.addLog(objRecebido.getRespostasEAceitacao());
+
             DataNetworkManager.respostasRecebidasDoRound.add(objRecebido);
         }
 
         public void arrayListType(Object obj) {
-            System.out.println("arrayListType");
-
             try {
+                
                 ArrayList<EndRound> objRecebidoEndRound;
                 objRecebidoEndRound = (ArrayList<EndRound>) obj;
 
+                Session.addLog("[OBJECT] recebido ArrayList<EndRound>");
+                
                 if (Session.DEBUG) {
                     System.out.println("*****-------------EndRoundARRAY received---------*****");
                     for (EndRound teste1 : objRecebidoEndRound) {
@@ -328,7 +332,7 @@ public class Servidor {
                 return;
 
             } catch (Exception e) {
-                System.out.println("Objeto é de EndRound"); //To change body of generated methods, choose Tools | Templates.
+                Session.addLog("[OBJECT] recebido ArrayList<User>");
                 try {
                     ArrayList<User> objRecebidoUser = (ArrayList<User>) obj;
                     DataNetworkManager.respostasRecebidasValidated.add(objRecebidoUser);
@@ -354,14 +358,17 @@ public class Servidor {
             Session.canStartGame = true;//Flag para thread q está ouvindo fazer action
         }
 
+        @Override
         public void run() {
             if (socket == null || socket.isClosed()) {
                 return;
 
             }
+            String a = "Conexão recebida " + socket.getRemoteSocketAddress().toString();
+
             try {
-                System.out.println("Connected - " + socket.getRemoteSocketAddress().toString());
-                System.out.println("Connected - " + socket.getInetAddress().getHostAddress());
+                Session.addLog(a);
+                //System.out.println("Connected - " + socket.getInetAddress().getHostAddress());
                 inStream = new ObjectInputStream(socket.getInputStream());
 
                 Object obj = inStream.readObject();

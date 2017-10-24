@@ -3,6 +3,10 @@ package ui;
 import java.util.Timer;
 import java.util.TimerTask;
 import entidades.network.DataNetworkManager;
+import java.awt.Dimension;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import util.Session;
 
 /**
@@ -34,21 +38,19 @@ public class GameScreenWaitingRoomPreValidation extends javax.swing.JPanel {
                         startValidationScheme();
                         cancelAllThreads();
                     }
-                } else {
-                    if (Session.canValidateRespostas) {
-                        Session.canValidateRespostas = false;
-                        Session.JFramePrincipal.changeScreen(new GameScreenValidation());
+                } else if (Session.canValidateRespostas) {
+                    Session.canValidateRespostas = false;
+                    Session.JFramePrincipal.changeScreen(new GameScreenValidation());
 
-                        cancelAllThreads();
-                    } else if (Session.canShowHighScores) {
-                        Session.canShowHighScores = false;
-                        Session.JFramePrincipal.changeScreen(new HighScore());
-                        cancelAllThreads();
-                    } else if (Session.canStartGame) {
-                        Session.canStartGame = false;
-                        Session.JFramePrincipal.changeScreen(new GameScreen());
-                        cancelAllThreads();
-                    }
+                    cancelAllThreads();
+                } else if (Session.canShowHighScores) {
+                    Session.canShowHighScores = false;
+                    Session.JFramePrincipal.changeScreen(new HighScore());
+                    cancelAllThreads();
+                } else if (Session.canStartGame) {
+                    Session.canStartGame = false;
+                    Session.JFramePrincipal.changeScreen(new GameScreen());
+                    cancelAllThreads();
                 }
             }
         };
@@ -132,6 +134,7 @@ public class GameScreenWaitingRoomPreValidation extends javax.swing.JPanel {
         jLabelTempo = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabelJogadoresRestantes = new javax.swing.JLabel();
+        jButton3 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
 
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -178,6 +181,14 @@ public class GameScreenWaitingRoomPreValidation extends javax.swing.JPanel {
         jLabelJogadoresRestantes.setText("jLabel5");
         add(jLabelJogadoresRestantes, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 105, -1, -1));
 
+        jButton3.setText("LOGS");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+        add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 440, -1, -1));
+
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagens/tela.png"))); // NOI18N
         jLabel5.setText("jLabel5");
         add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, -20, 620, -1));
@@ -192,10 +203,22 @@ public class GameScreenWaitingRoomPreValidation extends javax.swing.JPanel {
         startValidationScheme();
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        JTextArea textArea = new JTextArea(Session.getLog());
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(500, 500));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JOptionPane.showMessageDialog(null, scrollPane, "Logs",
+                JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_jButton3ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

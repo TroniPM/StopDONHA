@@ -26,8 +26,23 @@ public class Session {
     public static boolean canValidateRespostas = false;
     public static boolean canShowHighScores = false;
     public static boolean canShowMainMenuByConnectionError = false;
-    
-    public String log = "";
+
+    public static String log = "";
+
+    public static void addLog(String s) {
+        System.out.println(((isServidor == true) ? "SERVER" : "CLIENT") + s);
+
+        log += s + "\n\r";
+        if (isServidor) {
+            log += "SERVER >> ";
+        } else {
+            log += "CLIENT >> ";
+        }
+    }
+
+    public static String getLog() {
+        return log;
+    }
 
     public static void clearAllData() {
         masterIP = "127.0.0.1";

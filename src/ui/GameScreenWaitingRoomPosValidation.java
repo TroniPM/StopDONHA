@@ -3,6 +3,10 @@ package ui;
 import java.util.Timer;
 import java.util.TimerTask;
 import entidades.network.DataNetworkManager;
+import java.awt.Dimension;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import util.Session;
 
 /**
@@ -26,20 +30,18 @@ public class GameScreenWaitingRoomPosValidation extends javax.swing.JPanel {
                         calcularPontuacao();
                         cancelAllThreads();
                     }
-                } else {
-                    if (Session.canValidateRespostas) {
-                        Session.canValidateRespostas = false;
-                        Session.JFramePrincipal.changeScreen(new GameScreenValidation());
-                        cancelAllThreads();
-                    } else if (Session.canShowHighScores) {
-                        Session.canShowHighScores = false;
-                        Session.JFramePrincipal.changeScreen(new HighScore());
-                        cancelAllThreads();
-                    } else if (Session.canStartGame) {
-                        Session.canStartGame = false;
-                        Session.JFramePrincipal.changeScreen(new GameScreen());
-                        cancelAllThreads();
-                    }
+                } else if (Session.canValidateRespostas) {
+                    Session.canValidateRespostas = false;
+                    Session.JFramePrincipal.changeScreen(new GameScreenValidation());
+                    cancelAllThreads();
+                } else if (Session.canShowHighScores) {
+                    Session.canShowHighScores = false;
+                    Session.JFramePrincipal.changeScreen(new HighScore());
+                    cancelAllThreads();
+                } else if (Session.canStartGame) {
+                    Session.canStartGame = false;
+                    Session.JFramePrincipal.changeScreen(new GameScreen());
+                    cancelAllThreads();
                 }
             }
 
@@ -105,6 +107,7 @@ public class GameScreenWaitingRoomPosValidation extends javax.swing.JPanel {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabelPlayersRemaing = new javax.swing.JLabel();
+        jButton3 = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
 
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -143,6 +146,14 @@ public class GameScreenWaitingRoomPosValidation extends javax.swing.JPanel {
         jLabelPlayersRemaing.setText("jLabel4");
         add(jLabelPlayersRemaing, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 105, -1, -1));
 
+        jButton3.setText("LOGS");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+        add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 440, -1, -1));
+
         jLabel4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagens/tela.png"))); // NOI18N
         jLabel4.setText("jLabel4");
         add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, -20, -1, -1));
@@ -159,10 +170,22 @@ public class GameScreenWaitingRoomPosValidation extends javax.swing.JPanel {
         Session.JFramePrincipal.changeScreen(new MainMenu());
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        JTextArea textArea = new JTextArea(Session.getLog());
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(500, 500));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JOptionPane.showMessageDialog(null, scrollPane, "Logs",
+                JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_jButton3ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
