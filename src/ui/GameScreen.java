@@ -12,6 +12,13 @@ import java.util.logging.Logger;
 import entidades.network.DataNetworkManager;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.RoundDataToValidate;
+import java.awt.Dimension;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import util.Session;
 
 /**
@@ -139,7 +146,6 @@ public class GameScreen extends javax.swing.JPanel {
             //Litener para receber respostas de jogadores
             Session.conexaoServidor.ListeningEndRoundToValidate();
         }
-
     }
 
     /**
@@ -166,6 +172,7 @@ public class GameScreen extends javax.swing.JPanel {
         jLabel4 = new javax.swing.JLabel();
         jLabelLetra = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
 
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -201,7 +208,7 @@ public class GameScreen extends javax.swing.JPanel {
         jLabelObjeto.setText("ITEM");
         add(jLabelObjeto, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 220, -1, -1));
 
-        jButton1.setText("Sair do JOGO");
+        jButton1.setText("Sair da PARTIDA");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -253,6 +260,14 @@ public class GameScreen extends javax.swing.JPanel {
             }
         });
         add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 470, -1, -1));
+
+        jButton3.setText("Logs");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+        add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 470, -1, -1));
 
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagens/tela.png"))); // NOI18N
         jLabel5.setText("jLabel5");
@@ -322,20 +337,31 @@ public class GameScreen extends javax.swing.JPanel {
     private void jTextArea1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextArea1KeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             finishRound();
+        } else if (evt.isShiftDown() && evt.getKeyCode() == KeyEvent.VK_TAB) {
+            setViewingData(-1);
         } else if (evt.getKeyCode() == KeyEvent.VK_TAB) {
             setViewingData(+1);
             //Isso faz com que ao dar tab, não dê espaço.
             evt.consume();
-        } else if (evt.getKeyCode() == KeyEvent.VK_SHIFT) {
-            setViewingData(-1);
         }
-
     }//GEN-LAST:event_jTextArea1KeyPressed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        JTextArea textArea = new JTextArea("AAAAAAAAEEEEEEEEEEEE");
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(500, 500));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JOptionPane.showMessageDialog(null, scrollPane, "Logs",
+                JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_jButton3ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButtonAnt;
     private javax.swing.JButton jButtonProx;
     private javax.swing.JLabel jLabel1;

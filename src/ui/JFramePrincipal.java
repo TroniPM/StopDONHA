@@ -2,6 +2,7 @@ package ui;
 
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
+import javax.swing.ToolTipManager;
 import util.Session;
 
 /**
@@ -46,6 +47,7 @@ public class JFramePrincipal extends javax.swing.JFrame {
         Session.JFramePrincipal = this;
         changeScreen(new MainMenu());
 
+        ToolTipManager.sharedInstance().setEnabled(false);
     }
 
     /**
