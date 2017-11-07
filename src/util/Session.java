@@ -4,6 +4,7 @@ import entidades.GameRuntime;
 import entidades.network.Cliente;
 import entidades.network.DataNetworkManager;
 import entidades.network.Servidor;
+import security.Security;
 import ui.JFramePrincipal;
 
 /**
@@ -29,8 +30,10 @@ public class Session {
 
     public static String log = "";
 
+    public static Security security = new Security();
+
     public static void addLog(String s) {
-        System.out.println(((isServidor == true) ? "SERVER" : "CLIENT") + s);
+        System.out.println(((isServidor == true) ? "SERVER >> " : "CLIENT >> ") + s);
 
         log += s + "\n\r";
         if (isServidor) {

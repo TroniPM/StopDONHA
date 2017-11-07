@@ -13,6 +13,9 @@ import static entidades.network.Servidor.PORT_CLIENT;
 import static entidades.network.Servidor.PORT_SERVER;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.User;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import util.Session;
 
 /**
@@ -59,15 +62,19 @@ public class Cliente {
     public void communicateWaitingRoom() throws IOException {
         String a = "Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
-        
-        socket = new Socket(Session.masterIP, PORT_SERVER);
-        outputStream = new ObjectOutputStream(socket.getOutputStream());
+
+        Socket socket = new Socket(Session.masterIP, PORT_SERVER);
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
         a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
-        
+
         User user = new User();
         user.nickname = Session.nickname;
-        outputStream.writeObject(user);
+
+        out.println(Session.security.brincar(user.convertToString()));
+
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
     }
@@ -81,11 +88,13 @@ public class Cliente {
                 return;
             }
             Socket socket = new Socket(ip, PORT_CLIENT);
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            outputStream.writeObject(obj);
+            out.println(obj.convertToString());
+
             a = "Enviado GameRuntime [OBJECT] para" + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
@@ -100,12 +109,14 @@ public class Cliente {
         String a = "Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
         try {
-            socket = new Socket(Session.masterIP, PORT_SERVER);
-            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            Socket socket = new Socket(Session.masterIP, PORT_SERVER);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            outputStream.writeObject(objToSend);
+            out.println(objToSend.convertToString());
+
             a = "Enviado EndRound [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 

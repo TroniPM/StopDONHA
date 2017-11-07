@@ -11,6 +11,9 @@ import java.util.logging.Logger;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.RoundDataToValidate;
 import entidades.network.sendible.User;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import util.Session;
 
 /**
@@ -287,34 +290,34 @@ public class Servidor {
             }
         }
 
-        public void userType(Object obj) {
-            User data = (User) obj;
+        public void userType(User data) {
+            //User data = (User) obj;
             Session.addLog("[OBJECT] recebido User " + data.nickname);
             networkClientsSockets.add(socket);
             Session.gRunTime.nicknamesNetwork.add(data.nickname);
         }
 
-        public void endRoundType(Object obj) {
-            EndRound objRecebido = (EndRound) obj;
+        public void endRoundType(EndRound obj) {
+            //EndRound objRecebido = (EndRound) obj;
             /*if (Session.DEBUG) {
                 System.out.println("------------------EndRound received--------------");
                 objRecebido.printRespostasEAceitacao();
                 System.out.println("--------------------------------------------------");
             }*/
             Session.addLog("[OBJECT] recebido EndRound");
-            Session.addLog(objRecebido.getRespostasEAceitacao());
+            Session.addLog(obj.getRespostasEAceitacao());
 
-            DataNetworkManager.respostasRecebidasDoRound.add(objRecebido);
+            DataNetworkManager.respostasRecebidasDoRound.add(obj);
         }
 
         public void arrayListType(Object obj) {
             try {
-                
+
                 ArrayList<EndRound> objRecebidoEndRound;
                 objRecebidoEndRound = (ArrayList<EndRound>) obj;
 
                 Session.addLog("[OBJECT] recebido ArrayList<EndRound>");
-                
+
                 if (Session.DEBUG) {
                     System.out.println("*****-------------EndRoundARRAY received---------*****");
                     for (EndRound teste1 : objRecebidoEndRound) {
@@ -345,16 +348,16 @@ public class Servidor {
 
         }
 
-        public void roundDataToValidateType(Object obj) {
-            RoundDataToValidate data = (RoundDataToValidate) obj;
-            System.out.println("Object received = " + data.id);
-            for (int i = 0; i < data.respostasAceitacao.size(); i++) {
-                System.out.println(data.respostasAceitacao.get(i));
+        public void roundDataToValidateType(RoundDataToValidate obj) {
+            //RoundDataToValidate data = (RoundDataToValidate) obj;
+            System.out.println("Object received = " + obj.id);
+            for (int i = 0; i < obj.respostasAceitacao.size(); i++) {
+                System.out.println(obj.respostasAceitacao.get(i));
             }
         }
 
-        public void gameRunType(Object obj) {
-            Session.gRunTime = (GameRuntime) obj;
+        public void gameRunType(GameRuntime obj) {
+            Session.gRunTime = obj;
             Session.canStartGame = true;//Flag para thread q está ouvindo fazer action
         }
 
@@ -365,28 +368,56 @@ public class Servidor {
 
             }
             String a = "Conexão recebida " + socket.getRemoteSocketAddress().toString();
+            Session.addLog(a);
 
+            BufferedReader in;
             try {
-                Session.addLog(a);
-                //System.out.println("Connected - " + socket.getInetAddress().getHostAddress());
-                inStream = new ObjectInputStream(socket.getInputStream());
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                String msg = in.readLine();
 
-                Object obj = inStream.readObject();
-                if (obj instanceof User) {
-                    userType(obj);
-                } else if (obj instanceof EndRound) {
-                    endRoundType(obj);
-                } else if (obj instanceof ArrayList) {
-                    arrayListType(obj);
-                } else if (obj instanceof RoundDataToValidate) {
-                    roundDataToValidateType(obj);
-                } else if (obj instanceof GameRuntime) {
-                    gameRunType(obj);
+                Session.addLog("##### RECEBEU TEXTO: " + msg);
+
+                try {
+                    User user = User.convertFromString(Session.security.desbrincar(msg));
+                    userType(user);
+                    return;
+                } catch (ClassNotFoundException ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    EndRound endRound = EndRound.convertFromString(Session.security.desbrincar(msg));
+                    endRoundType(endRound);
+                    return;
+                } catch (ClassNotFoundException ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString(Session.security.desbrincar(msg));
+                    roundDataToValidateType(roundDataValidate);
+                    return;
+                } catch (ClassNotFoundException ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    GameRuntime gameRuntime = GameRuntime.convertFromString(Session.security.desbrincar(msg));
+                    gameRunType(gameRuntime);
+                    return;
+                } catch (ClassNotFoundException ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-            } catch (IOException | ClassNotFoundException ex) {
+                //REMOVER ISSO E PASSAR PARA O MÉTODO DE CIMA
+                inStream = new ObjectInputStream(socket.getInputStream());
+                Object obj = inStream.readObject();
+                if (obj instanceof ArrayList) {
+                    arrayListType(obj);
+                }
+            } catch (IOException ex) {
                 //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 Session.canShowMainMenuByConnectionError = true;
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
