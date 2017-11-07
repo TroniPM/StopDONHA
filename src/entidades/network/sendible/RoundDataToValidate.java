@@ -34,11 +34,38 @@ public class RoundDataToValidate implements Serializable {
         return null;
     }
 
+    public static String convertToStringArray(ArrayList<RoundDataToValidate> array) {
+        try {
+            String str;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(array);
+            byte[] objeto = baos.toByteArray();
+            str = Base64.encode(objeto);
+            oos.close();
+            return str;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static RoundDataToValidate convertFromString(String str) throws ClassNotFoundException {
         try {
             ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decode(str));
             ObjectInputStream ois = new ObjectInputStream(bais);
             return (RoundDataToValidate) ois.readObject();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static ArrayList<RoundDataToValidate> convertFromStringArray(String str) throws ClassNotFoundException {
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decode(str));
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            return (ArrayList<RoundDataToValidate>) ois.readObject();
         } catch (IOException e) {
             e.printStackTrace();
         }

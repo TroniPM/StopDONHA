@@ -33,14 +33,10 @@ public class Session {
     public static Security security = new Security();
 
     public static void addLog(String s) {
-        System.out.println(((isServidor == true) ? "SERVER >> " : "CLIENT >> ") + s);
+        String a = ((isServidor == true) ? "SERVER >> " : "CLIENT >> ") + s;
+        System.out.println(a);
 
-        log += s + "\n\r";
-        if (isServidor) {
-            log += "SERVER >> ";
-        } else {
-            log += "CLIENT >> ";
-        }
+        log += a + "\n\r";
     }
 
     public static String getLog() {

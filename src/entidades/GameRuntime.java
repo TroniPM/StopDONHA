@@ -11,6 +11,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.List;
 
 /**
  *
@@ -29,7 +30,7 @@ public class GameRuntime implements Serializable {
     /**
      * Pontuação dos jogadores.
      */
-    public ArrayList<User> pontuacaoDoRound = new ArrayList<>();
+    public List<User> pontuacaoDoRound = new ArrayList<>();
     /**
      * Nomes dos jogadores.
      */
@@ -54,7 +55,7 @@ public class GameRuntime implements Serializable {
         nicknamesNetwork.clear();
     }
 
-    public void addScore(ArrayList<User> newRound) {
+    public void addScore(List<User> newRound) {
         if (pontuacaoDoRound.size() == 0) {
             pontuacaoDoRound = newRound;
         } else {

@@ -9,11 +9,14 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import entidades.network.sendible.EndRound;
+import entidades.network.sendible.EndRoundArray;
 import entidades.network.sendible.RoundDataToValidate;
 import entidades.network.sendible.User;
+import entidades.network.sendible.UserArray;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.List;
 import util.Session;
 
 /**
@@ -204,7 +207,7 @@ public class Servidor {
             @Override
             public void run() {
                 serverSocket = makeConnectionServer();
-                Session.addLog("Ouvindo EndRound");
+                Session.addLog("Ouvindo ListeningEndRoundToValidate");
                 while (true) {
                     Socket socket = null;
                     try {
@@ -310,13 +313,9 @@ public class Servidor {
             DataNetworkManager.respostasRecebidasDoRound.add(obj);
         }
 
-        public void arrayListType(Object obj) {
+        public void arrayListEndRound(List<EndRound> objRecebidoEndRound) {
+            Session.addLog("[OBJECT] recebido ArrayList<EndRound>");
             try {
-
-                ArrayList<EndRound> objRecebidoEndRound;
-                objRecebidoEndRound = (ArrayList<EndRound>) obj;
-
-                Session.addLog("[OBJECT] recebido ArrayList<EndRound>");
 
                 if (Session.DEBUG) {
                     System.out.println("*****-------------EndRoundARRAY received---------*****");
@@ -327,25 +326,22 @@ public class Servidor {
                     }
                     System.out.println("*****----------------------------------------*****");
                 }
-                System.out.println("canOverrideMainArray = " + DataNetworkManager.canOverrideMainArray);
-
+                //System.out.println("canOverrideMainArray = " + DataNetworkManager.canOverrideMainArray);
                 DataNetworkManager.respostasRecebidasDoRound = objRecebidoEndRound;
-                Session.canValidateRespostas = true;
-
-                return;
-
             } catch (Exception e) {
-                Session.addLog("[OBJECT] recebido ArrayList<User>");
-                try {
-                    ArrayList<User> objRecebidoUser = (ArrayList<User>) obj;
-                    DataNetworkManager.respostasRecebidasValidated.add(objRecebidoUser);
-                } catch (Exception e1) {
-                    throw new UnsupportedOperationException("Objeto é de tipo diferente."); //To change body of generated methods, choose Tools | Templates.
-                }
-
-                Session.canShowHighScores = true;
             }
+            Session.canValidateRespostas = true;
+        }
 
+        public void arrayListUser(List<User> objRecebidoUser) {
+            Session.addLog("[OBJECT] recebido ArrayList<User>");
+            try {
+                //ArrayList<User> objRecebidoUser = (ArrayList<User>) obj;
+                DataNetworkManager.respostasRecebidasValidated.add(objRecebidoUser);
+            } catch (Exception e1) {
+                throw new UnsupportedOperationException("Objeto é de tipo diferente."); //To change body of generated methods, choose Tools | Templates.
+            }
+            Session.canShowHighScores = true;
         }
 
         public void roundDataToValidateType(RoundDataToValidate obj) {
@@ -376,48 +372,54 @@ public class Servidor {
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                 String msg = in.readLine();
 
-                Session.addLog("##### RECEBEU TEXTO: " + msg);
+                Session.addLog("#####RECEBENDO##### TEXTO: " + msg);
 
                 try {
                     User user = User.convertFromString(Session.security.desbrincar(msg));
                     userType(user);
                     return;
-                } catch (ClassNotFoundException ex) {
+                } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 try {
                     EndRound endRound = EndRound.convertFromString(Session.security.desbrincar(msg));
                     endRoundType(endRound);
                     return;
-                } catch (ClassNotFoundException ex) {
+                } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 try {
                     RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString(Session.security.desbrincar(msg));
                     roundDataToValidateType(roundDataValidate);
                     return;
-                } catch (ClassNotFoundException ex) {
+                } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 try {
                     GameRuntime gameRuntime = GameRuntime.convertFromString(Session.security.desbrincar(msg));
                     gameRunType(gameRuntime);
                     return;
-                } catch (ClassNotFoundException ex) {
+                } catch (Exception ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    EndRoundArray endRoundArray = EndRoundArray.convertFromStringArray(Session.security.desbrincar(msg));
+                    arrayListEndRound(endRoundArray.array);
+                    return;
+                } catch (Exception ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    UserArray userArray = UserArray.convertFromStringArray(Session.security.desbrincar(msg));
+                    arrayListUser(userArray.array);
+                    return;
+                } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                //REMOVER ISSO E PASSAR PARA O MÉTODO DE CIMA
-                inStream = new ObjectInputStream(socket.getInputStream());
-                Object obj = inStream.readObject();
-                if (obj instanceof ArrayList) {
-                    arrayListType(obj);
-                }
             } catch (IOException ex) {
                 //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 Session.canShowMainMenuByConnectionError = true;
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

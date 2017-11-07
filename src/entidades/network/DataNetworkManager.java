@@ -5,6 +5,7 @@ import static entidades.GameRuntime.PONTO_POR_ACERTO;
 import java.util.ArrayList;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.User;
+import java.util.List;
 
 /**
  *
@@ -12,14 +13,14 @@ import entidades.network.sendible.User;
  */
 public class DataNetworkManager {
 
-    public static ArrayList<EndRound> respostasRecebidasDoRound = new ArrayList<>();
-    public static ArrayList<ArrayList> respostasRecebidasValidated = new ArrayList<>();
+    public static List<EndRound> respostasRecebidasDoRound = new ArrayList<>();
+    public static List<List> respostasRecebidasValidated = new ArrayList<>();
 
     public static boolean canOverrideMainArray = true;
 
-    public static ArrayList<User> cl_calculateScore() {
-        ArrayList<User> user = new ArrayList<>();
-        ArrayList<EndRound> arrayAux = DataNetworkManager.respostasRecebidasDoRound;
+    public static List<User> cl_calculateScore() {
+        List<User> user = new ArrayList<>();
+        List<EndRound> arrayAux = DataNetworkManager.respostasRecebidasDoRound;
 
         for (int i = 0; i < arrayAux.size(); i++) {
             User auxUser = new User();
@@ -49,16 +50,16 @@ public class DataNetworkManager {
         return user;
     }
 
-    public static ArrayList<User> sv_sumScore() {
-        ArrayList<ArrayList> arrayAux = DataNetworkManager.respostasRecebidasValidated;
-        ArrayList<User> arrayToSendBack = new ArrayList<>();
+    public static List<User> sv_sumScore() {
+        List<List> arrayAux = DataNetworkManager.respostasRecebidasValidated;
+        List<User> arrayToSendBack = new ArrayList<>();
 
         //AVALIADOR
         for (int m = 0; m < arrayAux.size(); m++) {
             User userToUse = new User();
             //PESSOA AVALIADA
             for (int i = 0; i < arrayAux.size(); i++) {
-                ArrayList<User> helper = ((ArrayList<User>) arrayAux.get(i));
+                List<User> helper = ((List<User>) arrayAux.get(i));
                 //Para o caro so SERVIDOR forçar finalização das avaliações
                 if (helper.size() - 1 <= m) {
                     User helperInner = helper.get(m);

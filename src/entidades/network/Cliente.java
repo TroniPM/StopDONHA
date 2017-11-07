@@ -12,10 +12,13 @@ import java.util.logging.Logger;
 import static entidades.network.Servidor.PORT_CLIENT;
 import static entidades.network.Servidor.PORT_SERVER;
 import entidades.network.sendible.EndRound;
+import entidades.network.sendible.EndRoundArray;
 import entidades.network.sendible.User;
+import entidades.network.sendible.UserArray;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.List;
 import util.Session;
 
 /**
@@ -60,7 +63,7 @@ public class Cliente {
     }
 
     public void communicateWaitingRoom() throws IOException {
-        String a = "Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
+        String a = "communicateWaitingRoom: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
 
         Socket socket = new Socket(Session.masterIP, PORT_SERVER);
@@ -81,7 +84,7 @@ public class Cliente {
 
     public void sv_communicateStartGame(String ip, GameRuntime obj) {
         try {
-            String a = "Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            String a = "sv_communicateStartGame: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
             //Não deixo enviar para o mesmo ip da máquina servidor.
             if (ip.equals(Session.masterIP)) {
@@ -93,7 +96,7 @@ public class Cliente {
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            out.println(obj.convertToString());
+            out.println(Session.security.brincar(obj.convertToString()));
 
             a = "Enviado GameRuntime [OBJECT] para" + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
@@ -105,8 +108,8 @@ public class Cliente {
         }
     }
 
-    public void communicateEndRoundToValidate(EndRound objToSend) {
-        String a = "Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
+    public void communicateEndRoundToValidate(EndRound obj) {
+        String a = "communicateEndRoundToValidate: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
         try {
             Socket socket = new Socket(Session.masterIP, PORT_SERVER);
@@ -115,7 +118,7 @@ public class Cliente {
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            out.println(objToSend.convertToString());
+            out.println(Session.security.brincar(obj.convertToString()));
 
             a = "Enviado EndRound [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
@@ -127,23 +130,27 @@ public class Cliente {
         }
     }
 
-    public void sv_communicateStartValidation(String ip, ArrayList<EndRound> obj) {
+    public void sv_communicateStartValidation(String ip, List<EndRound> obj) {
         try {
-            String a = "Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            String a = "sv_communicateStartValidation: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
             //Não deixo enviar para o mesmo ip da máquina servidor.
             if (ip.equals(Session.masterIP)) {
                 return;
             }
             Socket socket = new Socket(ip, PORT_CLIENT);
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            outputStream.writeObject(obj);
+            String objMain = new EndRoundArray(obj).convertToStringArray();
+            out.println(Session.security.brincar(objMain));
             a = "Enviado ArrayList<EndRound> [OBJECT] para " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
+            //Session.addLog(objMain);
+            System.out.println("<><><><><><><><><><><><><><><EndRound1> " + objMain);
         } catch (SocketException se) {
             se.printStackTrace();
         } catch (IOException e) {
@@ -151,19 +158,22 @@ public class Cliente {
         }
     }
 
-    public void communicateDataValidated(ArrayList<User> objToSend) {
-        String a = "Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
+    public void communicateDataValidated(List<User> obj) {
+        String a = "communicateDataValidated: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
         try {
-            socket = new Socket(Session.masterIP, PORT_SERVER);
-            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            Socket socket = new Socket(Session.masterIP, PORT_SERVER);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            outputStream.writeObject(objToSend);
+            String objMain = new UserArray(obj).convertToStringArray();
+            out.println(Session.security.brincar(objMain));
             a = "Enviado ArrayList<User> [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
+            System.out.println("<><><><><><><><><><><><><><><User2> " + objMain);
         } catch (SocketException se) {
             se.printStackTrace();
         } catch (IOException e) {
@@ -171,23 +181,26 @@ public class Cliente {
         }
     }
 
-    public void sv_communicateScores(String ip, ArrayList<User> obj) {
+    public void sv_communicateScores(String ip, List<User> obj) {
         try {
-            String a = "Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            String a = "sv_communicateScores: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
             //Não deixo enviar para o mesmo ip da máquina servidor.
             if (ip.equals(Session.masterIP)) {
                 return;
             }
             Socket socket = new Socket(ip, PORT_CLIENT);
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            outputStream.writeObject(obj);
+            String objMain = new UserArray(obj).convertToStringArray();
+            out.println(Session.security.brincar(objMain));
             a = "Enviado ArrayList<User> [OBJECT] para " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
+            System.out.println("<><><><><><><><><><><><><><><User3> " + objMain);
         } catch (SocketException se) {
             se.printStackTrace();
         } catch (IOException e) {
