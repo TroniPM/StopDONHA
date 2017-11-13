@@ -1,1 +1,0 @@
-[{"nickname":"Servidor","ip":"192.168.0.104","pontuacao":34},{"nickname":"Cliente","ip":"192.168.0.100","pontuacao":34}]
