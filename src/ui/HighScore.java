@@ -41,9 +41,17 @@ public class HighScore extends javax.swing.JPanel {
 
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
         System.out.println("chegou. tam de gRunTime.pontuacaoDoRound= " + Session.gRunTime.pontuacaoDoRound.size());
+
+        ArrayList<User> userAux = new ArrayList<>();
         for (int i = 0; i < Session.gRunTime.pontuacaoDoRound.size(); i++) {
-            System.out.println("------>" + Session.gRunTime.pontuacaoDoRound.get(i).nickname);
-            Object rowData[] = {i + 1, Session.gRunTime.pontuacaoDoRound.get(i).nickname, Session.gRunTime.pontuacaoDoRound.get(i).pontuacao};
+            User a = new User(Session.gRunTime.pontuacaoDoRound.get(i).nickname, Session.gRunTime.pontuacaoDoRound.get(i).pontuacao);
+            userAux.add(a);
+        }
+
+        ordenarUsuariosPorPontuacaoDecrescente(userAux);
+        for (int i = 0; i < userAux.size(); i++) {
+            System.out.println("------>" + userAux.get(i).nickname);
+            Object rowData[] = {i + 1, userAux.get(i).nickname, userAux.get(i).pontuacao};
             model.addRow(rowData);
         }
 
@@ -61,7 +69,7 @@ public class HighScore extends javax.swing.JPanel {
 
         ArrayList<User> userAux = (ArrayList<User>) DataNetworkManager.respostasRecebidasValidated.get(DataNetworkManager.respostasRecebidasValidated.size() - 1);
 
-        ordenarUsuariosPorPontuacaoCrescente(userAux);
+        ordenarUsuariosPorPontuacaoDecrescente(userAux);
         System.out.println("chegou. tam de gRunTime.pontuacaoDoRound= " + userAux.size());
         for (int i = 0; i < userAux.size(); i++) {
             System.out.println("------>" + userAux.get(i).nickname);
@@ -72,16 +80,16 @@ public class HighScore extends javax.swing.JPanel {
         jTable1.setModel(model);
     }
 
-    public void ordenarUsuariosPorPontuacaoCrescente(ArrayList<User> user) {
-        Collections.sort(user, new ComparadorPontuacaoCrescente());
+    public void ordenarUsuariosPorPontuacaoDecrescente(ArrayList<User> user) {
+        Collections.sort(user, new ComparadorPontuacaoDecrescente());
     }
 
-    private class ComparadorPontuacaoCrescente implements Comparator<User> {
+    private class ComparadorPontuacaoDecrescente implements Comparator<User> {
 
         @Override
         public int compare(User o1, User o2) {
 
-            return (o1.pontuacao < o2.pontuacao) ? -1 : ((o1.pontuacao > o2.pontuacao) ? 1 : 0);
+            return (o1.pontuacao < o2.pontuacao) ? 1 : ((o1.pontuacao > o2.pontuacao) ? -1 : 0);
         }
     }
 

@@ -303,7 +303,7 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
         }
         if (ctrl) {
             Session.JFramePrincipal.changeScreen(new SalaDeEspera(true));
-        } else{
+        } else {
             JOptionPane.showMessageDialog(this, "Selecione pelo menos UM tema.");
         }
 

@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class GameRuntime implements Serializable {
 
-    public static final int PONTO_POR_ACERTO = 17;
+    public static final int PONTO_POR_ACERTO = 5;
     public static final int PONTO_BONIFICACAO_POR_VELOCIDADE = 6;//multiplicado pela quantidade de pessoas
 
     private static final long serialVersionUID = 1L;
@@ -30,7 +30,7 @@ public class GameRuntime implements Serializable {
     /**
      * Pontuação dos jogadores.
      */
-    public List<User> pontuacaoDoRound = new ArrayList<>();
+    public ArrayList<User> pontuacaoDoRound = new ArrayList<>();
     /**
      * Nomes dos jogadores.
      */
@@ -55,7 +55,7 @@ public class GameRuntime implements Serializable {
         nicknamesNetwork.clear();
     }
 
-    public void addScore(List<User> newRound) {
+    public void addScore(ArrayList<User> newRound) {
         if (pontuacaoDoRound.size() == 0) {
             pontuacaoDoRound = newRound;
         } else {

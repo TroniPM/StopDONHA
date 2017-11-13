@@ -295,38 +295,21 @@ public class Servidor {
 
         public void userType(User data) {
             //User data = (User) obj;
-            Session.addLog("[OBJECT] recebido User " + data.nickname);
+            Session.addLog("RECEIVED: userType(): [OBJECT] recebido User: " + data.nickname);
             networkClientsSockets.add(socket);
             Session.gRunTime.nicknamesNetwork.add(data.nickname);
         }
 
         public void endRoundType(EndRound obj) {
-            //EndRound objRecebido = (EndRound) obj;
-            /*if (Session.DEBUG) {
-                System.out.println("------------------EndRound received--------------");
-                objRecebido.printRespostasEAceitacao();
-                System.out.println("--------------------------------------------------");
-            }*/
-            Session.addLog("[OBJECT] recebido EndRound");
+            Session.addLog("RECEIVED: endRoundType(): [OBJECT] recebido EndRound");
             Session.addLog(obj.getRespostasEAceitacao());
 
             DataNetworkManager.respostasRecebidasDoRound.add(obj);
         }
 
-        public void arrayListEndRound(List<EndRound> objRecebidoEndRound) {
-            Session.addLog("[OBJECT] recebido ArrayList<EndRound>");
+        public void arrayListEndRound(ArrayList<EndRound> objRecebidoEndRound) {
+            Session.addLog("RECEIVED: arrayListEndRound(): [OBJECT] recebido ArrayList<EndRound>");
             try {
-
-                if (Session.DEBUG) {
-                    System.out.println("*****-------------EndRoundARRAY received---------*****");
-                    for (EndRound teste1 : objRecebidoEndRound) {
-                        System.out.println("------------------EndRound received--------------");
-                        teste1.printRespostasEAceitacao();
-                        System.out.println("--------------------------------------------------");
-                    }
-                    System.out.println("*****----------------------------------------*****");
-                }
-                //System.out.println("canOverrideMainArray = " + DataNetworkManager.canOverrideMainArray);
                 DataNetworkManager.respostasRecebidasDoRound = objRecebidoEndRound;
             } catch (Exception e) {
             }
@@ -334,7 +317,7 @@ public class Servidor {
         }
 
         public void arrayListUser(List<User> objRecebidoUser) {
-            Session.addLog("[OBJECT] recebido ArrayList<User>");
+            Session.addLog("RECEIVED: arrayListUser(): [OBJECT] recebido ArrayList<User>");
             try {
                 //ArrayList<User> objRecebidoUser = (ArrayList<User>) obj;
                 DataNetworkManager.respostasRecebidasValidated.add(objRecebidoUser);
@@ -346,13 +329,14 @@ public class Servidor {
 
         public void roundDataToValidateType(RoundDataToValidate obj) {
             //RoundDataToValidate data = (RoundDataToValidate) obj;
-            System.out.println("Object received = " + obj.id);
+            Session.addLog("RECEIVED: roundDataToValidateType(): [OBJECT] recebido RoundDataToValidate: " + obj.id);
             for (int i = 0; i < obj.respostasAceitacao.size(); i++) {
                 System.out.println(obj.respostasAceitacao.get(i));
             }
         }
 
         public void gameRunType(GameRuntime obj) {
+            Session.addLog("RECEIVED: gameRunType(): [OBJECT] recebido gameRunType: " + obj.currentNickname);
             Session.gRunTime = obj;
             Session.canStartGame = true;//Flag para thread q está ouvindo fazer action
         }

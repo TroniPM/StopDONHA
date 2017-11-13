@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package entidades.network.sendible;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
@@ -12,17 +7,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  *
- * @author Mateus
+ * @author PMateus <paulomatew@gmailcom>
  */
 public class EndRoundArray implements Serializable {
 
-    public List<EndRound> array = null;
+    public int FLAG = 0;
+    public ArrayList<EndRound> array = null;
 
-    public EndRoundArray(List<EndRound> array) {
+    public EndRoundArray(ArrayList<EndRound> array) {
         this.array = array;
     }
 
@@ -37,7 +34,7 @@ public class EndRoundArray implements Serializable {
         return null;
     }
 
-    public String convertToStringArray() {
+    public String convertToString() {
         try {
             String str;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();

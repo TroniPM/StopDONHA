@@ -130,7 +130,7 @@ public class Cliente {
         }
     }
 
-    public void sv_communicateStartValidation(String ip, List<EndRound> obj) {
+    public void sv_communicateStartValidation(String ip, ArrayList<EndRound> obj) {
         try {
             String a = "sv_communicateStartValidation: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
@@ -144,13 +144,10 @@ public class Cliente {
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            String objMain = new EndRoundArray(obj).convertToStringArray();
+            String objMain = new EndRoundArray(obj).convertToString();
             out.println(Session.security.brincar(objMain));
             a = "Enviado ArrayList<EndRound> [OBJECT] para " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
-
-            //Session.addLog(objMain);
-            System.out.println("<><><><><><><><><><><><><><><EndRound1> " + objMain);
         } catch (SocketException se) {
             se.printStackTrace();
         } catch (IOException e) {
@@ -158,7 +155,7 @@ public class Cliente {
         }
     }
 
-    public void communicateDataValidated(List<User> obj) {
+    public void communicateDataValidated(ArrayList<User> obj) {
         String a = "communicateDataValidated: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
         try {
@@ -168,12 +165,10 @@ public class Cliente {
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            String objMain = new UserArray(obj).convertToStringArray();
+            String objMain = new UserArray(obj).convertToString();
             out.println(Session.security.brincar(objMain));
             a = "Enviado ArrayList<User> [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
-
-            System.out.println("<><><><><><><><><><><><><><><User2> " + objMain);
         } catch (SocketException se) {
             se.printStackTrace();
         } catch (IOException e) {
@@ -181,7 +176,7 @@ public class Cliente {
         }
     }
 
-    public void sv_communicateScores(String ip, List<User> obj) {
+    public void sv_communicateScores(String ip, ArrayList<User> obj) {
         try {
             String a = "sv_communicateScores: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
@@ -195,12 +190,10 @@ public class Cliente {
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            String objMain = new UserArray(obj).convertToStringArray();
+            String objMain = new UserArray(obj).convertToString();
             out.println(Session.security.brincar(objMain));
             a = "Enviado ArrayList<User> [OBJECT] para " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
-
-            System.out.println("<><><><><><><><><><><><><><><User3> " + objMain);
         } catch (SocketException se) {
             se.printStackTrace();
         } catch (IOException e) {
