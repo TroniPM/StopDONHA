@@ -288,6 +288,7 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
     }
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        //Session.masterIP = "127.0.0.1";
         Session.nickname = jTextField1.getText();
         Session.gRunTime.currentNickname = Session.nickname;
         Session.gRunTime.qntdRounds = Integer.parseInt(getSelectedButtonText(buttonGroup1));

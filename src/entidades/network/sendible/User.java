@@ -7,8 +7,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 /**
  *
@@ -19,6 +24,17 @@ public class User implements Serializable {
     private static final long serialVersionUID = 1L;
     public String nickname = "", ip = "";
     public int pontuacao = 0;
+
+    /**/
+    private SecretKey chaveSessao;
+    private PublicKey chavePublica;
+    //private PrivateKey chavePrivada;
+
+    public void init(SecretKey chaveSessao, PublicKey chavePublica/*,PrivateKey chavePrivada*/) {
+        this.chaveSessao = chaveSessao;
+        this.chavePublica = chavePublica;
+        //this.chavePrivada = chavePrivada;
+    }
 
     public User() {
     }

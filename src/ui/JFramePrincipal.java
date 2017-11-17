@@ -19,9 +19,8 @@ public class JFramePrincipal extends javax.swing.JFrame {
             this.remove(currentScreen);
         }
         currentScreen = panel;
-        
-        //this.add(panel);
 
+        //this.add(panel);
         this.setLayout(new BorderLayout());
         this.add(panel, BorderLayout.CENTER);
 
@@ -32,7 +31,8 @@ public class JFramePrincipal extends javax.swing.JFrame {
     public void changeTitleText(String txt) {
         this.setTitle(mainTitle + " - " + txt);
     }
-    public void resetTitle(){
+
+    public void resetTitle() {
         this.setTitle(mainTitle);
     }
 
@@ -43,7 +43,7 @@ public class JFramePrincipal extends javax.swing.JFrame {
         initComponents();
 
         setLocationRelativeTo(null);
-        
+
         Session.JFramePrincipal = this;
         changeScreen(new MainMenu());
 

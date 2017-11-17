@@ -13,6 +13,10 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import entidades.network.Servidor;
 import entidades.network.sendible.User;
+import java.awt.Dimension;
+import java.net.ServerSocket;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import util.Session;
 
 /**
@@ -39,9 +43,6 @@ public class SalaDeEspera extends javax.swing.JPanel {
         TimerTask tarefa = new TimerTask() {
             @Override
             public void run() {
-                /*System.out.println(
-                 "Player qntd: " + playersWaiting.size()
-                 + " || networkClientsSockets player: " + Session.conexaoServidor.networkClientsSockets.size());*/
                 if (playersWaiting.size() > 0 && playersWaiting.size() < Session.conexaoServidor.networkClientsSockets.size()
                         && Session.conexaoServidor.networkClientsSockets.size() == Session.gRunTime.nicknamesNetwork.size()) {
                     for (int i = playersWaiting.size(); i < Session.conexaoServidor.networkClientsSockets.size(); i++) {
@@ -61,7 +62,6 @@ public class SalaDeEspera extends javax.swing.JPanel {
                         a2 = Session.gRunTime.nicknamesNetwork.get(0);
                         rowData = new Object[]{a1, a2};
                     } catch (Exception e) {
-                        System.out.println("Esperando inserção no array...");
                         return;
                     }
 
@@ -104,10 +104,9 @@ public class SalaDeEspera extends javax.swing.JPanel {
         initComponents();
         Session.JFramePrincipal.changeTitleText("Sala de Espera");
 
-        jButton3.setVisible(false);
-        jButton3.setEnabled(false);
+        jButton3.setVisible(true);
+        jButton3.setEnabled(true);
 
-        System.out.println(isMaster);
         if (!isMaster) {
             Session.isServidor = false;
             this.jLabel1.setText("Sala de Espera em " + Session.masterIP + ". Aguardando o início do jogo...");
@@ -119,10 +118,21 @@ public class SalaDeEspera extends javax.swing.JPanel {
             jButton1.setEnabled(false);
 
             try {
+                //Envia pro servidor qualquer coisa apenas para ele saber q um ip se conectou.
+                Session.conexaoCliente.communicateDummy();
+                //Recebo chave publica do servidor
+                Session.conexaoServidor.ListeningStepOne();
+                /* Envio pro servidor chave de sessão e chave publica do cliente
+                ENCRIPTADO com chave pública do servidor a partir de DENTRO da
+                thread do ListeningStepOne(), para que ele só envie StepTwo 
+                encriptado após receber a chave publica do servidor. */
+                //Session.conexaoCliente.communicateStepTwo(Session.security.passo2);
+                //Aviso ao servidor que vou entrar na sala.
                 Session.conexaoCliente.communicateWaitingRoom();
+                //Espero o servidor iniciar o jogo.
                 Session.conexaoServidor.ListeningStartGame();
                 canStartGameThreadCheck();
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 jLabel1.setText("Erro: " + ex.getLocalizedMessage());
                 Session.JFramePrincipal.changeScreen(new MainMenu());
 
@@ -214,7 +224,7 @@ public class SalaDeEspera extends javax.swing.JPanel {
         });
         add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 440, 120, 40));
 
-        jButton3.setText("PING");
+        jButton3.setText("LOGS");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
@@ -265,7 +275,14 @@ public class SalaDeEspera extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        pingar();
+        JTextArea textArea = new JTextArea(Session.getLog());
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(500, 500));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JOptionPane.showMessageDialog(null, scrollPane, "Logs",
+                JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void pingar() {

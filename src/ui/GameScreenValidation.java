@@ -99,7 +99,7 @@ public class GameScreenValidation extends javax.swing.JPanel {
         if (currentIndex == DataNetworkManager.respostasRecebidasDoRound.size() - 1) {
             jButtonProxPlayer.setEnabled(false);
         }
-        System.out.println("GameScreenValidation() -  preencherTabela() - ip do avaliado: " + DataNetworkManager.respostasRecebidasDoRound.get(currentIndex).ip);
+        Session.addLog("GameScreenValidation() -  preencherTabela() - ip do avaliado: " + DataNetworkManager.respostasRecebidasDoRound.get(currentIndex).ip);
 
         for (int j = 0; j < DataNetworkManager.respostasRecebidasDoRound.get(currentIndex).objResposta.respostas.size(); j++) {
             model.addRow(new Object[]{

@@ -11,12 +11,18 @@ import java.util.logging.Logger;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.EndRoundArray;
 import entidades.network.sendible.RoundDataToValidate;
+import entidades.network.sendible.StepOne;
+import entidades.network.sendible.StepTwo;
 import entidades.network.sendible.User;
 import entidades.network.sendible.UserArray;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.Inet4Address;
+import java.security.PublicKey;
 import java.util.List;
+import org.bouncycastle.crypto.DataLengthException;
+import util.Methods;
 import util.Session;
 
 /**
@@ -34,8 +40,9 @@ public class Servidor {
     public static final int PORT_SERVER = 12345;
     public static final int PORT_CLIENT = 12346;
 
-    private static Thread threadWaitingRoom, threadStartGame, threadEndRound, threadStartValidation, threadShowScore;
+    private static Thread threadWaitingKey, threadWaitingRoom, threadStartGame, threadEndRound, threadStartValidation, threadShowScore;
     private static ArrayList<EchoThread> arrayAllThreads = new ArrayList<>();
+    private boolean first = false;
 
     public Servidor() {
 
@@ -122,7 +129,7 @@ public class Servidor {
                 arrayAllThreads.get(i).interrupt();
                 arrayAllThreads.set(i, null);
             } catch (Exception a) {
-                System.out.println("Não conseguiu finalizar thread.");
+                //System.out.println("Não conseguiu finalizar thread.");
             }
         }
         closeConnectionServer();
@@ -151,6 +158,27 @@ public class Servidor {
             Logger.getLogger(Servidor.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public void ListeningStepOne() {
+        //Não está dentro de um WHILE. Só recebe UMA conexão.
+        threadWaitingKey = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                serverSocket = makeConnectionServer();
+                Session.addLog("Ouvindo ListeningStepOne");
+
+                try {
+                    Socket socket = serverSocket.accept();
+                    EchoThread a = new EchoThread(socket);
+                    a.start();
+                } catch (IOException e) {
+                    Session.addLog("ListeningStepOne() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
+                }
+            }
+        });
+        threadWaitingKey.start();
+
     }
 
     public void ListeningWaitingRoom() {
@@ -331,7 +359,7 @@ public class Servidor {
             //RoundDataToValidate data = (RoundDataToValidate) obj;
             Session.addLog("RECEIVED: roundDataToValidateType(): [OBJECT] recebido RoundDataToValidate: " + obj.id);
             for (int i = 0; i < obj.respostasAceitacao.size(); i++) {
-                System.out.println(obj.respostasAceitacao.get(i));
+                Session.addLog(obj.respostasAceitacao.get(i).toString());
             }
         }
 
@@ -341,66 +369,130 @@ public class Servidor {
             Session.canStartGame = true;//Flag para thread q está ouvindo fazer action
         }
 
+        public void stepOneType(StepOne obj) {
+            Session.addLog("RECEIVED: stepOneType(): [OBJECT] recebido StepOne: " + obj);
+            Session.security.passo1 = obj;
+        }
+
+        public void stepTwoType(StepTwo obj) {
+            Session.addLog("RECEIVED: stepTwoType(): [OBJECT] recebido StepTwo: " + obj);
+            Session.security.passo2 = obj;
+        }
+
         @Override
         public void run() {
             if (socket == null || socket.isClosed()) {
                 return;
 
             }
-            String a = "Conexão recebida " + socket.getRemoteSocketAddress().toString();
-            Session.addLog(a);
+            Session.addLog("Conexão recebida " + socket.getRemoteSocketAddress().toString());
+            Session.addLog("Conexão recebida " + socket.getInetAddress().getHostAddress());
 
-            BufferedReader in;
             try {
+                BufferedReader in;
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                 String msg = in.readLine();
 
                 Session.addLog("#####RECEBENDO##### TEXTO: " + msg);
 
+                //Vai enviar chave publica
+                if (msg.equals("getkey")) {
+                    Session.addLog("VAI ENVIAR CHAVE PUBLICA. Chegou ao fim. É DUMMY connection");
+                    Session.conexaoCliente.sv_communicateStepOne(socket.getInetAddress().getHostAddress(), Session.security.passo1);
+                    return;
+                }
+                /**
+                 * OBRIGATORIAMENTE PRECISA VIR ANTES.
+                 */
+                //Se já for o servidor, desconsidero isto.
+                //if (first) {
                 try {
-                    User user = User.convertFromString(Session.security.desbrincar(msg));
+                    StepOne one = StepOne.convertFromString(msg);
+                    stepOneType(one);
+                    /* Envio pro servidor chave de sessão e chave publica do cliente
+                    ENCRIPTADO com chave pública do servidor a partir de DENTRO da
+                    thread do ListeningStepOne(), para que ele só envie StepTwo 
+                    encriptado após receber a chave publica do servidor. */
+                    Session.conexaoCliente.communicateStepTwo(Session.security.passo2);
+                    return;
+                } catch (DataLengthException ex) {
+                } catch (Exception ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    //StepTwo two = StepTwo.convertFromString(new String(Session.security.decriptografa(msg.getBytes("UTF-8"), Session.security.passo1.chavePublicaSERVIDOR)));
+                    StepTwo two = StepTwo.convertFromString(msg);
+                    System.out.println(two.toString());
+                    return;
+                } catch (DataLengthException ex) {
+                } catch (Exception ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                //}
+                /**
+                 * OBRIGATORIAMENTE PRECISA VIR ANTES.
+                 */
+                try {
+                    //User user = User.convertFromString(Session.security.desbrincar(msg));
+                    User user = User.convertFromString((msg));
                     userType(user);
+                    first = true;
                     return;
+                } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 try {
-                    EndRound endRound = EndRound.convertFromString(Session.security.desbrincar(msg));
+                    //EndRound endRound = EndRound.convertFromString(Session.security.desbrincar(msg));
+                    EndRound endRound = EndRound.convertFromString((msg));
                     endRoundType(endRound);
+                    first = true;
                     return;
+                } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 try {
-                    RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString(Session.security.desbrincar(msg));
+                    //RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString(Session.security.desbrincar(msg));
+                    RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString((msg));
                     roundDataToValidateType(roundDataValidate);
+                    first = true;
                     return;
+                } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 try {
-                    GameRuntime gameRuntime = GameRuntime.convertFromString(Session.security.desbrincar(msg));
+                    //GameRuntime gameRuntime = GameRuntime.convertFromString(Session.security.desbrincar(msg));
+                    GameRuntime gameRuntime = GameRuntime.convertFromString((msg));
                     gameRunType(gameRuntime);
+                    first = true;
                     return;
+                } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 try {
-                    EndRoundArray endRoundArray = EndRoundArray.convertFromStringArray(Session.security.desbrincar(msg));
+                    //EndRoundArray endRoundArray = EndRoundArray.convertFromStringArray(Session.security.desbrincar(msg));
+                    EndRoundArray endRoundArray = EndRoundArray.convertFromStringArray((msg));
                     arrayListEndRound(endRoundArray.array);
+                    first = true;
                     return;
+                } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 try {
-                    UserArray userArray = UserArray.convertFromStringArray(Session.security.desbrincar(msg));
+                    //UserArray userArray = UserArray.convertFromStringArray(Session.security.desbrincar(msg));
+                    UserArray userArray = UserArray.convertFromStringArray((msg));
                     arrayListUser(userArray.array);
+                    first = true;
                     return;
+                } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
             } catch (IOException ex) {
                 //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 Session.canShowMainMenuByConnectionError = true;

@@ -32,6 +32,8 @@ public class MainMenu extends javax.swing.JPanel {
     }
 
     public MainMenu() {
+        Session.security.init();
+        
         Session.clearAllData();
 
         initComponents();

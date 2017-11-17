@@ -13,12 +13,16 @@ import static entidades.network.Servidor.PORT_CLIENT;
 import static entidades.network.Servidor.PORT_SERVER;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.EndRoundArray;
+import entidades.network.sendible.StepOne;
+import entidades.network.sendible.StepTwo;
 import entidades.network.sendible.User;
 import entidades.network.sendible.UserArray;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.security.PublicKey;
 import java.util.List;
+import util.Methods;
 import util.Session;
 
 /**
@@ -62,6 +66,23 @@ public class Cliente {
         }
     }
 
+    public void communicateDummy() throws IOException {
+        String a = "communicateDummy: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
+        Session.addLog(a);
+
+        Socket socket = new Socket(Session.masterIP, PORT_SERVER);
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+        a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
+        Session.addLog(a);
+
+        out.println("getkey");
+
+        a = "Enviado DummyConnection para " + Session.masterIP + ":" + PORT_SERVER;
+        Session.addLog(a);
+    }
+
     public void communicateWaitingRoom() throws IOException {
         String a = "communicateWaitingRoom: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
@@ -76,7 +97,9 @@ public class Cliente {
         User user = new User();
         user.nickname = Session.nickname;
 
-        out.println(Session.security.brincar(user.convertToString()));
+        //out.println(Session.security.brincar(user.convertToString()));
+        //Encriptar com chave de sessão e enviar
+        out.println((user.convertToString()));
 
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
@@ -96,9 +119,38 @@ public class Cliente {
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            out.println(Session.security.brincar(obj.convertToString()));
+            //out.println(Session.security.brincar(obj.convertToString()));
+            //Encriptar com chave de sessão e enviar
+            out.println((obj.convertToString()));
 
             a = "Enviado GameRuntime [OBJECT] para" + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+
+        } catch (SocketException se) {
+            se.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sv_communicateStepOne(String ip, StepOne obj) {
+        try {
+            String a = "sv_communicateStepOne: Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+            //Não deixo enviar para o mesmo ip da máquina servidor.
+            if (ip.equals(Session.masterIP)) {
+                return;
+            }
+            Socket socket = new Socket(ip, PORT_CLIENT);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            a = "Conectado a " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+
+            //Não é necessário encriptar chave pública do servidor
+            out.println(obj.convertToString());
+
+            a = "Enviado StepOne [OBJECT] para" + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
         } catch (SocketException se) {
@@ -118,7 +170,9 @@ public class Cliente {
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            out.println(Session.security.brincar(obj.convertToString()));
+            //out.println(Session.security.brincar(obj.convertToString()));
+            //Encriptar com chave de sessão e enviar
+            out.println((obj.convertToString()));
 
             a = "Enviado EndRound [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
@@ -145,7 +199,9 @@ public class Cliente {
             Session.addLog(a);
 
             String objMain = new EndRoundArray(obj).convertToString();
-            out.println(Session.security.brincar(objMain));
+            //out.println(Session.security.brincar(objMain));
+            //Encriptar com chave de sessão e enviar
+            out.println((objMain));
             a = "Enviado ArrayList<EndRound> [OBJECT] para " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
         } catch (SocketException se) {
@@ -166,7 +222,9 @@ public class Cliente {
             Session.addLog(a);
 
             String objMain = new UserArray(obj).convertToString();
-            out.println(Session.security.brincar(objMain));
+            //out.println(Session.security.brincar(objMain));
+            //Encriptar com chave de sessão e enviar
+            out.println((objMain));
             a = "Enviado ArrayList<User> [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
         } catch (SocketException se) {
@@ -191,9 +249,39 @@ public class Cliente {
             Session.addLog(a);
 
             String objMain = new UserArray(obj).convertToString();
-            out.println(Session.security.brincar(objMain));
+            //out.println(Session.security.brincar(objMain));
+            //Encriptar com chave de sessão e enviar
+            out.println((objMain));
             a = "Enviado ArrayList<User> [OBJECT] para " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
+        } catch (SocketException se) {
+            se.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void communicateStepTwo(StepTwo obj) {
+        try {
+            String a = "communicateStepTwo: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
+            Session.addLog(a);
+
+            Socket socket = new Socket(Session.masterIP, PORT_SERVER);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
+            Session.addLog(a);
+
+            /* Criptografo a chave publica e chave de sessão do cliente com a 
+            chave privada do servidor */
+ /*out.println(Session.security.criptografa(obj.convertToString().getBytes("UFT-8"),
+                    Session.security.passo1.chavePublicaSERVIDOR));*/
+            //Encriptar com chave publica do servidor
+            out.println(obj.convertToString());
+
+            a = "Enviado StepTwo [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
+            Session.addLog(a);
+
         } catch (SocketException se) {
             se.printStackTrace();
         } catch (IOException e) {

@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.List;
+import util.Session;
 
 /**
  *
@@ -62,7 +63,7 @@ public class GameRuntime implements Serializable {
 
             for (int i = 0; i < pontuacaoDoRound.size(); i++) {
                 for (int j = 0; j < newRound.size(); j++) {
-                    System.out.println("addScore() \nnome: " + pontuacaoDoRound.get(i).nickname + "==" + newRound.get(j).nickname
+                    Session.addLog("addScore() \nnome: " + pontuacaoDoRound.get(i).nickname + "==" + newRound.get(j).nickname
                             + "\nip: " + pontuacaoDoRound.get(i).ip + "==" + newRound.get(j).ip);
                     if (pontuacaoDoRound.get(i).nickname.equals(newRound.get(j).nickname)
                             && pontuacaoDoRound.get(i).ip.equals(newRound.get(j).ip)) {

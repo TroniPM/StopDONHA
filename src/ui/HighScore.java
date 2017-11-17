@@ -40,7 +40,6 @@ public class HighScore extends javax.swing.JPanel {
         Object columnNames[] = {"Posição", "Nome", "Pontuação"};
 
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-        System.out.println("chegou. tam de gRunTime.pontuacaoDoRound= " + Session.gRunTime.pontuacaoDoRound.size());
 
         ArrayList<User> userAux = new ArrayList<>();
         for (int i = 0; i < Session.gRunTime.pontuacaoDoRound.size(); i++) {
@@ -50,7 +49,7 @@ public class HighScore extends javax.swing.JPanel {
 
         ordenarUsuariosPorPontuacaoDecrescente(userAux);
         for (int i = 0; i < userAux.size(); i++) {
-            System.out.println("------>" + userAux.get(i).nickname);
+            //System.out.println("------>" + userAux.get(i).nickname);
             Object rowData[] = {i + 1, userAux.get(i).nickname, userAux.get(i).pontuacao};
             model.addRow(rowData);
         }
@@ -70,9 +69,8 @@ public class HighScore extends javax.swing.JPanel {
         ArrayList<User> userAux = (ArrayList<User>) DataNetworkManager.respostasRecebidasValidated.get(DataNetworkManager.respostasRecebidasValidated.size() - 1);
 
         ordenarUsuariosPorPontuacaoDecrescente(userAux);
-        System.out.println("chegou. tam de gRunTime.pontuacaoDoRound= " + userAux.size());
         for (int i = 0; i < userAux.size(); i++) {
-            System.out.println("------>" + userAux.get(i).nickname);
+            //System.out.println("------>" + userAux.get(i).nickname);
             Object rowData[] = {i + 1, userAux.get(i).nickname, userAux.get(i).pontuacao};
             model.addRow(rowData);
         }
@@ -144,10 +142,10 @@ public class HighScore extends javax.swing.JPanel {
             fillTableClient();
         }
 
-        System.out.println("HighScore()");
+        Session.addLog("HighScore() CLASS");
         for (int i = 0; i < Session.gRunTime.pontuacaoDoRound.size(); i++) {
-            System.out.println("NICK: " + Session.gRunTime.pontuacaoDoRound.get(i).nickname);
-            System.out.println("PONTUAÇÃO: " + Session.gRunTime.pontuacaoDoRound.get(i).pontuacao);
+            Session.addLog("NICK: " + Session.gRunTime.pontuacaoDoRound.get(i).nickname);
+            Session.addLog("PONTUAÇÃO: " + Session.gRunTime.pontuacaoDoRound.get(i).pontuacao);
         }
     }
 
