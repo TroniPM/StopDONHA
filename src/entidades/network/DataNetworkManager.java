@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
 import util.Session;
 
 /**
@@ -42,12 +41,12 @@ public class DataNetworkManager {
                 }
             }
 
-            System.out.println("\n\n####################");
-            System.out.println("CALCULANDO PONTUAÇÃO");
-            System.out.println("Usuário: " + auxUser.nickname);
-            System.out.println("Ip: " + auxUser.ip);
-            System.out.println("Pontuação: " + pontos);
-            System.out.println("####################");
+            //System.out.println("\n\n####################");
+            //System.out.println("CALCULANDO PONTUAÇÃO");
+            //System.out.println("Usuário: " + auxUser.nickname);
+            //System.out.println("Ip: " + auxUser.ip);
+            //System.out.println("Pontuação: " + pontos);
+            //System.out.println("####################");
 
             /*Faço esse if para o caso de usuário não inserir nada. Ele ganharia pontos
              só pelo fato de ter enviado primeiro. Então se ele não pontuou nad ano round, 
@@ -61,8 +60,7 @@ public class DataNetworkManager {
             user.add(auxUser);
         }
 
-        System.out.println("cl_calculateScore() calculou notas de " + user.size() + " jogadores.");
-
+        //System.out.println("cl_calculateScore() calculou notas de " + user.size() + " jogadores.");
         return user;
     }
 
@@ -70,35 +68,39 @@ public class DataNetworkManager {
         ArrayList<List> arrayAux = DataNetworkManager.respostasRecebidasValidated;
         ArrayList<User> arrayToSendBack = new ArrayList<>();
 
-        ObjectMapper mapper = new ObjectMapper();
-
         //AVALIADOR
         for (int m = 0; m < arrayAux.size(); m++) {
-            User userToUse = new User();
-            //PESSOA AVALIADA
-            for (int i = 0; i < arrayAux.size(); i++) {
-
-                try {
-                    mapper.writeValue(new File("./json.txt"), (List<User>) arrayAux.get(i));
-                    String jsonInString = mapper.writeValueAsString((List<User>) arrayAux.get(i));
-                    escreverEmArquivo("./json2.txt", jsonInString, true);
-                } catch (IOException ex) {
-                    Logger.getLogger(DataNetworkManager.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                List<User> helper = ((List<User>) arrayAux.get(i));
-                //Para o caro so SERVIDOR forçar finalização das avaliações
-                if (helper.size() - 1 <= m) {
-                    User helperInner = helper.get(m);
-                    userToUse.nickname = helperInner.nickname;
-                    userToUse.ip = helperInner.ip;
-                    userToUse.pontuacao += helperInner.pontuacao;
+            ArrayList<User> arrayUser = (ArrayList<User>) arrayAux.get(m);
+            for (int j = 0; j < arrayUser.size(); j++) {
+                User user = arrayUser.get(j);
+                int index = check(arrayToSendBack, user);
+                //Usuário ainda não foi adicionado
+                if (index == -1) {
+                    arrayToSendBack.add(user);
+                } else {//usuário já foi adicionado. Então só atualizo pontuação
+                    arrayToSendBack.get(index).pontuacao += user.pontuacao;
                 }
             }
-            System.out.println("sv_sumScore() NICKNAME: " + userToUse.nickname + " | PONTUAÇÃO: " + userToUse.pontuacao);
-            arrayToSendBack.add(userToUse);
         }
+
         return arrayToSendBack;
+    }
+
+    /**
+     * Checar se usuário já está no array.
+     *
+     * @param array
+     * @param checkFor
+     * @return
+     */
+    private static int check(ArrayList<User> array, User checkFor) {
+        for (int i = 0; i < array.size(); i++) {
+            if (array.get(i).ip.equals(checkFor.ip)
+                    && array.get(i).nickname.equals(checkFor.nickname)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public static void cleanAllData() {
@@ -106,35 +108,4 @@ public class DataNetworkManager {
         respostasRecebidasValidated.clear();
         canOverrideMainArray = true;
     }
-
-    public static void escreverEmArquivo(String caminho, String content, boolean isAppend) {
-        FileOutputStream fop = null;
-        File file;
-        try {
-            file = new File(caminho);
-            fop = new FileOutputStream(file, isAppend);
-            //Se arquivo não existe, é criado
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            //pega o content em bytes
-            byte[] contentInBytes = content.getBytes();
-            fop.write(contentInBytes);
-            //flush serve para garantir o envio do último lote de bytes
-            fop.flush();
-            fop.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (fop != null) {
-                    fop.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
 }
