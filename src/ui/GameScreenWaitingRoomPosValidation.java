@@ -67,7 +67,7 @@ public class GameScreenWaitingRoomPosValidation extends javax.swing.JPanel {
             if (ips[i].equals(Session.masterIP)) {
                 continue;
             }
-            Session.conexaoCliente.sv_communicateScores(ips[i], Session.gRunTime.pontuacaoDoRound);
+            Session.conexaoCliente.sv_communicateScores(ips[i], Session.gRunTime.usuariosConectados);
         }
         Session.JFramePrincipal.changeScreen(new HighScore());
     }

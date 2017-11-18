@@ -111,10 +111,10 @@ public class GameScreen extends javax.swing.JPanel {
     public int findPontuationByNickname() {
         Session.addLog("findPontuationByNickname()");
         int i;
-        for (i = 0; i < Session.gRunTime.pontuacaoDoRound.size(); i++) {
-            if (Session.nickname.equals(Session.gRunTime.pontuacaoDoRound.get(i).nickname)) {
-                Session.addLog("nickname: " + Session.nickname + " | pontuação: " + Session.gRunTime.pontuacaoDoRound.get(i).pontuacao);
-                return Session.gRunTime.pontuacaoDoRound.get(i).pontuacao;
+        for (i = 0; i < Session.gRunTime.usuariosConectados.size(); i++) {
+            if (Session.nickname.equals(Session.gRunTime.usuariosConectados.get(i).nickname)) {
+                Session.addLog("nickname: " + Session.nickname + " | pontuação: " + Session.gRunTime.usuariosConectados.get(i).pontuacao);
+                return Session.gRunTime.usuariosConectados.get(i).pontuacao;
             }
         }
         return 0;

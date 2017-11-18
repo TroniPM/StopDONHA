@@ -22,20 +22,20 @@ import javax.crypto.SecretKey;
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    public String nickname = "", ip = "";
+    public String nickname = "";
+    public String ip = "";
     public int pontuacao = 0;
 
     /**/
-    private SecretKey chaveSessao;
-    private PublicKey chavePublica;
+    public SecretKey chaveSessao = null;
+    public PublicKey chavePublica = null;
     //private PrivateKey chavePrivada;
 
-    public void init(SecretKey chaveSessao, PublicKey chavePublica/*,PrivateKey chavePrivada*/) {
+    /*public void init(SecretKey chaveSessao, PublicKey chavePublica) {
         this.chaveSessao = chaveSessao;
         this.chavePublica = chavePublica;
         //this.chavePrivada = chavePrivada;
-    }
-
+    }*/
     public User() {
     }
 

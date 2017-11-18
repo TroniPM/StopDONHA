@@ -243,6 +243,10 @@ public class SalaDeEspera extends javax.swing.JPanel {
         Session.JFramePrincipal.changeScreen(new MainMenu());
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    /**
+     * Mesclar esta esses objetos usuários com os objetos usuário da classe
+     * Server.arrayUsuariosComChaves;
+     */
     private void startGame() {
         String[] ips = Session.conexaoServidor.getIpsNetwork();
         for (int i = 0; i < ips.length; i++) {
@@ -250,8 +254,17 @@ public class SalaDeEspera extends javax.swing.JPanel {
             user.nickname = Session.gRunTime.nicknamesNetwork.get(i);
             user.ip = ips[i];
 
+            //Não vou adicionar isso pq não quero que todos os clientes possuam esta informação
+            /*for (int j = 0; j < Session.conexaoServidor.arrayUsuariosComChaves.size(); j++) {
+                User aux = Session.conexaoServidor.arrayUsuariosComChaves.get(j);
+                if (aux.nickname.equals(user.nickname)
+                        && aux.ip.equals(user.ip)) {
+                    user.chaveSessao = aux.chaveSessao;
+                    user.chavePublica = aux.chavePublica;
+                }
+            }*/
             //Inicio o array com todos os nicks e pontuações
-            Session.gRunTime.pontuacaoDoRound.add(user);
+            Session.gRunTime.usuariosConectados.add(user);
         }
 
         for (int i = 0; i < ips.length; i++) {

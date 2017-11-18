@@ -242,6 +242,11 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
 
         jTextField1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jTextField1.setText(Session.nickname);
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTextField1KeyPressed(evt);
+            }
+        });
         add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 10, 150, -1));
 
         jButton2.setText("Criar");
@@ -288,6 +293,11 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
     }
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        start();
+
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void start() {
         //Session.masterIP = "127.0.0.1";
         Session.nickname = jTextField1.getText();
         Session.gRunTime.currentNickname = Session.nickname;
@@ -307,8 +317,13 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
         } else {
             JOptionPane.showMessageDialog(this, "Selecione pelo menos UM tema.");
         }
+    }
 
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyPressed
+        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+            start();
+        }
+    }//GEN-LAST:event_jTextField1KeyPressed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -42,8 +42,8 @@ public class HighScore extends javax.swing.JPanel {
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
         ArrayList<User> userAux = new ArrayList<>();
-        for (int i = 0; i < Session.gRunTime.pontuacaoDoRound.size(); i++) {
-            User a = new User(Session.gRunTime.pontuacaoDoRound.get(i).nickname, Session.gRunTime.pontuacaoDoRound.get(i).pontuacao);
+        for (int i = 0; i < Session.gRunTime.usuariosConectados.size(); i++) {
+            User a = new User(Session.gRunTime.usuariosConectados.get(i).nickname, Session.gRunTime.usuariosConectados.get(i).pontuacao);
             userAux.add(a);
         }
 
@@ -112,7 +112,14 @@ public class HighScore extends javax.swing.JPanel {
             if (ip.equals(Session.masterIP)) {
                 continue;
             }
-            Session.conexaoCliente.sv_communicateStartGame(ip, Session.gRunTime);
+
+            //Jogo processamento pra uma thread auxiliar.
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Session.conexaoCliente.sv_communicateStartGame(ip, Session.gRunTime);
+                }
+            }).start();
         }
         Session.JFramePrincipal.changeScreen(new GameScreen());
     }
@@ -143,9 +150,9 @@ public class HighScore extends javax.swing.JPanel {
         }
 
         Session.addLog("HighScore() CLASS");
-        for (int i = 0; i < Session.gRunTime.pontuacaoDoRound.size(); i++) {
-            Session.addLog("NICK: " + Session.gRunTime.pontuacaoDoRound.get(i).nickname);
-            Session.addLog("PONTUAÇÃO: " + Session.gRunTime.pontuacaoDoRound.get(i).pontuacao);
+        for (int i = 0; i < Session.gRunTime.usuariosConectados.size(); i++) {
+            Session.addLog("NICK: " + Session.gRunTime.usuariosConectados.get(i).nickname);
+            Session.addLog("PONTUAÇÃO: " + Session.gRunTime.usuariosConectados.get(i).pontuacao);
         }
     }
 

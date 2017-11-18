@@ -19,9 +19,9 @@ public class Session {
     public static Servidor conexaoServidor = new Servidor();
     public static GameRuntime gRunTime = new GameRuntime();
 
+    public static String nickname = "Server";
     public static String masterIP = "127.0.0.1";
     public static boolean isServidor = true;
-    public static String nickname = "OwnerServer";
 
     public static boolean canStartGame = false;
     public static boolean canValidateRespostas = false;
@@ -45,6 +45,7 @@ public class Session {
 
     public static void clearAllData() {
         masterIP = "127.0.0.1";
+        nickname = "Server";
         isServidor = true;
 
         conexaoCliente.closeAndCleanAllData();

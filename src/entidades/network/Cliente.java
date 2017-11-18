@@ -31,7 +31,7 @@ import util.Session;
  */
 public class Cliente {
 
-    public Socket socket = null;
+    //public Socket socket = null;
     private ObjectInputStream inputStream = null;
     private ObjectOutputStream outputStream = null;
     private boolean isConnected = false;
@@ -40,7 +40,7 @@ public class Cliente {
     }
 
     public void closeAndCleanAllData() {
-        try {
+        /*try {
             if (socket != null && !socket.isClosed()) {
                 socket.close();
             }
@@ -48,7 +48,7 @@ public class Cliente {
             Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        socket = null;
+        socket = null;*/
         isConnected = false;
         try {
             if (inputStream != null) {
@@ -96,6 +96,8 @@ public class Cliente {
 
         User user = new User();
         user.nickname = Session.nickname;
+        user.chavePublica = Session.security.passo2.chavePublicaCLIENTE;
+        user.chaveSessao = Session.security.passo2.chaveSessaoCLIENTE;
 
         //out.println(Session.security.brincar(user.convertToString()));
         //Encriptar com chave de sessão e enviar

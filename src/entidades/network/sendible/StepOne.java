@@ -9,6 +9,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.PublicKey;
 
+/**
+ *
+ * @author PMateus <paulomatew@gmailcom>
+ */
 public class StepOne implements Serializable {
 
     public PublicKey chavePublicaSERVIDOR;

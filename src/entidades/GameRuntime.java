@@ -31,7 +31,7 @@ public class GameRuntime implements Serializable {
     /**
      * Pontuação dos jogadores.
      */
-    public ArrayList<User> pontuacaoDoRound = new ArrayList<>();
+    public ArrayList<User> usuariosConectados = new ArrayList<>();
     /**
      * Nomes dos jogadores.
      */
@@ -52,25 +52,24 @@ public class GameRuntime implements Serializable {
         currentNickname = "";
 
         itens.clear();
-        pontuacaoDoRound.clear();
+        usuariosConectados.clear();
         nicknamesNetwork.clear();
     }
 
     public void addScore(ArrayList<User> newRound) {
-        if (pontuacaoDoRound.size() == 0) {
-            pontuacaoDoRound = newRound;
+        if (usuariosConectados.size() == 0) {
+            usuariosConectados = newRound;
         } else {
 
-            for (int i = 0; i < pontuacaoDoRound.size(); i++) {
+            for (int i = 0; i < usuariosConectados.size(); i++) {
                 for (int j = 0; j < newRound.size(); j++) {
-                    Session.addLog("addScore() \nnome: " + pontuacaoDoRound.get(i).nickname + "==" + newRound.get(j).nickname
-                            + "\nip: " + pontuacaoDoRound.get(i).ip + "==" + newRound.get(j).ip);
-                    if (pontuacaoDoRound.get(i).nickname.equals(newRound.get(j).nickname)
-                            && pontuacaoDoRound.get(i).ip.equals(newRound.get(j).ip)) {
-                        User a = new User();
-                        a = pontuacaoDoRound.get(i);
+                    Session.addLog("addScore() \nnome: " + usuariosConectados.get(i).nickname + "==" + newRound.get(j).nickname
+                            + "\nip: " + usuariosConectados.get(i).ip + "==" + newRound.get(j).ip);
+                    if (usuariosConectados.get(i).nickname.equals(newRound.get(j).nickname)
+                            && usuariosConectados.get(i).ip.equals(newRound.get(j).ip)) {
+                        User a = usuariosConectados.get(i);
                         a.pontuacao += newRound.get(j).pontuacao;
-                        pontuacaoDoRound.set(i, a);
+                        usuariosConectados.set(i, a);
                     }
                 }
             }
@@ -78,11 +77,11 @@ public class GameRuntime implements Serializable {
     }
 
     public void ordenarUsuariosPorPontuacaoCrescente() {
-        Collections.sort(pontuacaoDoRound, new ComparadorPontuacaoCrescente());
+        Collections.sort(usuariosConectados, new ComparadorPontuacaoCrescente());
     }
 
     public void ordenarUsuariosPorPontuacaoDecrescente() {
-        Collections.sort(pontuacaoDoRound, new ComparadorPontuacaoDecrescente());
+        Collections.sort(usuariosConectados, new ComparadorPontuacaoDecrescente());
     }
 
     private class ComparadorPontuacaoCrescente implements Comparator<User> {

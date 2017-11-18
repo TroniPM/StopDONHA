@@ -21,6 +21,7 @@ import java.io.PrintWriter;
 import java.net.Inet4Address;
 import java.security.PublicKey;
 import java.util.List;
+import javax.crypto.SecretKey;
 import org.bouncycastle.crypto.DataLengthException;
 import util.Methods;
 import util.Session;
@@ -31,18 +32,18 @@ import util.Session;
  */
 public class Servidor {
 
-    private static ServerSocket serverSocket = null;
-    private static ServerSocket serverClientSocket = null;
-    public static ObjectInputStream inStream = null;
+    private ServerSocket serverSocket = null;
+    private ServerSocket serverClientSocket = null;
+    public ObjectInputStream inStream = null;
 
-    public static ArrayList<Socket> networkClientsSockets = new ArrayList<>();
-    private static String[] ipsNetwork = null;
+    public ArrayList<Socket> networkClientsSockets = new ArrayList<>();
+    public ArrayList<User> arrayUsuariosComChaves = new ArrayList<>();
+    private ArrayList<EchoThread> arrayAllThreads = new ArrayList<>();
+    private String[] ipsNetwork = null;
     public static final int PORT_SERVER = 12345;
     public static final int PORT_CLIENT = 12346;
 
     private static Thread threadWaitingKey, threadWaitingRoom, threadStartGame, threadEndRound, threadStartValidation, threadShowScore;
-    private static ArrayList<EchoThread> arrayAllThreads = new ArrayList<>();
-    private boolean first = false;
 
     public Servidor() {
 
@@ -326,6 +327,11 @@ public class Servidor {
             Session.addLog("RECEIVED: userType(): [OBJECT] recebido User: " + data.nickname);
             networkClientsSockets.add(socket);
             Session.gRunTime.nicknamesNetwork.add(data.nickname);
+
+            /* Adiciono a um array para poder mesclar esse objeto junto com os
+            objetos do GameRuntime */
+            data.ip = socket.getInetAddress().getHostAddress();
+            arrayUsuariosComChaves.add(data);
         }
 
         public void endRoundType(EndRound obj) {
@@ -391,22 +397,18 @@ public class Servidor {
             try {
                 BufferedReader in;
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                 String msg = in.readLine();
 
-                Session.addLog("#####RECEBENDO##### TEXTO: " + msg);
+                Session.addLog("#####RECEBEU##### TEXTO: " + msg);
 
-                //Vai enviar chave publica
                 if (msg.equals("getkey")) {
                     Session.addLog("VAI ENVIAR CHAVE PUBLICA. Chegou ao fim. É DUMMY connection");
                     Session.conexaoCliente.sv_communicateStepOne(socket.getInetAddress().getHostAddress(), Session.security.passo1);
                     return;
                 }
-                /**
-                 * OBRIGATORIAMENTE PRECISA VIR ANTES.
-                 */
+
                 //Se já for o servidor, desconsidero isto.
-                //if (first) {
                 try {
                     StepOne one = StepOne.convertFromString(msg);
                     stepOneType(one);
@@ -420,6 +422,8 @@ public class Servidor {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                //#1 - DESCRIPTOGRAFAR COM CHAVE PUBLICA SERVIDOR
+                //TODO
                 try {
                     //StepTwo two = StepTwo.convertFromString(new String(Session.security.decriptografa(msg.getBytes("UTF-8"), Session.security.passo1.chavePublicaSERVIDOR)));
                     StepTwo two = StepTwo.convertFromString(msg);
@@ -429,15 +433,23 @@ public class Servidor {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                //}
-                /**
-                 * OBRIGATORIAMENTE PRECISA VIR ANTES.
-                 */
+
+                //#2 - ENCONTRAR CHAVE DE SESSÃO DO CLIENTE ATUAL.
+                SecretKey keySessao = null;
+                PublicKey keyPublic = null;
+                for (User inUser : arrayUsuariosComChaves) {
+                    if (inUser.ip.equals(socket.getInetAddress().getHostAddress())) {
+                        keySessao = inUser.chaveSessao;
+                        keyPublic = inUser.chavePublica;
+                    }
+                }
+                //#3 - DESCRIPTOGRAFAR COM CHAVE PUBLICA SERVIDOR
+                //msg = new String(Session.security.decriptografaSimetrica(msg.getBytes(), keySessao));
+                //TODO
                 try {
                     //User user = User.convertFromString(Session.security.desbrincar(msg));
                     User user = User.convertFromString((msg));
                     userType(user);
-                    first = true;
                     return;
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
@@ -447,7 +459,6 @@ public class Servidor {
                     //EndRound endRound = EndRound.convertFromString(Session.security.desbrincar(msg));
                     EndRound endRound = EndRound.convertFromString((msg));
                     endRoundType(endRound);
-                    first = true;
                     return;
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
@@ -457,7 +468,6 @@ public class Servidor {
                     //RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString(Session.security.desbrincar(msg));
                     RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString((msg));
                     roundDataToValidateType(roundDataValidate);
-                    first = true;
                     return;
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
@@ -467,7 +477,6 @@ public class Servidor {
                     //GameRuntime gameRuntime = GameRuntime.convertFromString(Session.security.desbrincar(msg));
                     GameRuntime gameRuntime = GameRuntime.convertFromString((msg));
                     gameRunType(gameRuntime);
-                    first = true;
                     return;
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
@@ -477,7 +486,6 @@ public class Servidor {
                     //EndRoundArray endRoundArray = EndRoundArray.convertFromStringArray(Session.security.desbrincar(msg));
                     EndRoundArray endRoundArray = EndRoundArray.convertFromStringArray((msg));
                     arrayListEndRound(endRoundArray.array);
-                    first = true;
                     return;
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
@@ -487,7 +495,6 @@ public class Servidor {
                     //UserArray userArray = UserArray.convertFromStringArray(Session.security.desbrincar(msg));
                     UserArray userArray = UserArray.convertFromStringArray((msg));
                     arrayListUser(userArray.array);
-                    first = true;
                     return;
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {

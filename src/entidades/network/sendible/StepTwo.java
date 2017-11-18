@@ -10,6 +10,10 @@ import java.io.Serializable;
 import java.security.PublicKey;
 import javax.crypto.SecretKey;
 
+/**
+ *
+ * @author PMateus <paulomatew@gmailcom>
+ */
 public class StepTwo implements Serializable {
 
     public PublicKey chavePublicaCLIENTE;
