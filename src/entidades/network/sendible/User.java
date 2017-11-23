@@ -27,15 +27,10 @@ public class User implements Serializable {
     public int pontuacao = 0;
 
     /**/
-    public SecretKey chaveSessao = null;
-    public PublicKey chavePublica = null;
-    //private PrivateKey chavePrivada;
+    public PrivateKey KEY_ASSINATURA = null;
+    public SecretKey KEY_ENCRIPTACAO = null;
+    public PublicKey KEY_PUBLICA = null;
 
-    /*public void init(SecretKey chaveSessao, PublicKey chavePublica) {
-        this.chaveSessao = chaveSessao;
-        this.chavePublica = chavePublica;
-        //this.chavePrivada = chavePrivada;
-    }*/
     public User() {
     }
 

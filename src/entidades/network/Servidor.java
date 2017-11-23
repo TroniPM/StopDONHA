@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Inet4Address;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.List;
 import javax.crypto.SecretKey;
@@ -38,6 +39,7 @@ public class Servidor {
 
     public ArrayList<Socket> networkClientsSockets = new ArrayList<>();
     public ArrayList<User> arrayUsuariosComChaves = new ArrayList<>();
+    public ArrayList<StepTwo> arrayStepTwo = new ArrayList<>();
     private ArrayList<EchoThread> arrayAllThreads = new ArrayList<>();
     private String[] ipsNetwork = null;
     public static final int PORT_SERVER = 12345;
@@ -382,7 +384,8 @@ public class Servidor {
 
         public void stepTwoType(StepTwo obj) {
             Session.addLog("RECEIVED: stepTwoType(): [OBJECT] recebido StepTwo: " + obj);
-            Session.security.passo2 = obj;
+            //Session.security.passo2 = obj;
+            arrayStepTwo.add(obj);
         }
 
         @Override
@@ -394,13 +397,27 @@ public class Servidor {
             Session.addLog("Conexão recebida " + socket.getRemoteSocketAddress().toString());
             Session.addLog("Conexão recebida " + socket.getInetAddress().getHostAddress());
 
+            byte[] msgBytes = null;
+            String msg = null;
+            /*try {
+                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                System.out.println(objectInputStream);
+            } catch (IOException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }*/
             try {
-                BufferedReader in;
-                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                String msg = in.readLine();
+                try {
+                    //BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                    //String msg = in.readLine();
+                    msgBytes = (byte[]) new ObjectInputStream(socket.getInputStream()).readObject();
+                    msg = new String(msgBytes);
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
                 Session.addLog("#####RECEBEU##### TEXTO: " + msg);
+                //Session.addLog("#####RECEBEU##### TEXTO: " + msgBytes);
 
                 if (msg.equals("getkey")) {
                     Session.addLog("VAI ENVIAR CHAVE PUBLICA. Chegou ao fim. É DUMMY connection");
@@ -427,7 +444,8 @@ public class Servidor {
                 try {
                     //StepTwo two = StepTwo.convertFromString(new String(Session.security.decriptografa(msg.getBytes("UTF-8"), Session.security.passo1.chavePublicaSERVIDOR)));
                     StepTwo two = StepTwo.convertFromString(msg);
-                    System.out.println(two.toString());
+                    //SALVAR EM UM ARRAY.
+                    stepTwoType(two);
                     return;
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
@@ -437,24 +455,46 @@ public class Servidor {
                 //#2 - ENCONTRAR CHAVE DE SESSÃO DO CLIENTE ATUAL.
                 SecretKey keySessao = null;
                 PublicKey keyPublic = null;
+                PrivateKey keyPrivate = null;
                 for (User inUser : arrayUsuariosComChaves) {
                     if (inUser.ip.equals(socket.getInetAddress().getHostAddress())) {
-                        keySessao = inUser.chaveSessao;
-                        keyPublic = inUser.chavePublica;
+                        keySessao = inUser.KEY_ENCRIPTACAO;
+                        keyPublic = inUser.KEY_PUBLICA;
+                        keyPrivate = inUser.KEY_ASSINATURA;
                     }
                 }
-                //#3 - DESCRIPTOGRAFAR COM CHAVE PUBLICA SERVIDOR
-                //msg = new String(Session.security.decriptografaSimetrica(msg.getBytes(), keySessao));
-                //TODO
+                if (socket.getInetAddress().getHostAddress().equals(Inet4Address.getLocalHost().getHostAddress())) {
+                    keySessao = Session.security.passo1.KEY_ENCRIPTACAO;
+                    keyPublic = Session.security.passo1.KEY_PUBLICA;
+                    keyPrivate = Session.security.passo1.KEY_PRIVATE;
+                }
+                //#3 - PRINCIPAL
                 try {
-                    //User user = User.convertFromString(Session.security.desbrincar(msg));
-                    User user = User.convertFromString((msg));
-                    userType(user);
-                    return;
+                    byte[] data = Session.security.decriptografaSimetrica(msgBytes, keySessao);
+
+                    security.Package p = security.Package.convertFromByteArray(data);
+
+                    if (Session.security.verifySignature(new String(p.data), p.signature, keyPublic)) {
+                        Session.addLog("PACKAGE foi assinado corretamente.");
+                    } else {
+                        System.out.println("PACKAGE não foi assinado corretamente. Descartando...");
+                        return;
+                    }
+
+                    if (p.objeto.equals("user")) {
+                        try {
+                            userType(User.convertFromString(new String(p.data)));
+                        } catch (Exception ex) {
+                        }
+                    }
+                    //VERIFICAR SE MENSAGEM JÁ FOI ENVIADA
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                //msg = new String(Session.security.decriptografaSimetrica(msg.getBytes(), keySessao));
+                //TODO
+
                 try {
                     //EndRound endRound = EndRound.convertFromString(Session.security.desbrincar(msg));
                     EndRound endRound = EndRound.convertFromString((msg));

@@ -1,5 +1,1 @@
-TODO: encriptar o envio de dados.
-TODO: decriptar o recebimento de dados.
-TODO: assinar mensagem a ser enviada.
-	TODO: adicionar contador e verificar se mensagem já foi enviada.
-TODO: verificar assinatura da mensagem enviada.
+TODO: adicionar contador e verificar se mensagem já foi enviada.

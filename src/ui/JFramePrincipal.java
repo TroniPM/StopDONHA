@@ -1,8 +1,12 @@
 package ui;
 
 import java.awt.BorderLayout;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ToolTipManager;
+import util.JustOneLock;
 import util.Session;
 
 /**
@@ -40,6 +44,16 @@ public class JFramePrincipal extends javax.swing.JFrame {
      * Creates new form JFrame
      */
     public JFramePrincipal() {
+        JustOneLock u = new JustOneLock();
+        try {
+            if (u.isAppActive()) {
+                JOptionPane.showMessageDialog(null, "Uma instância do Jogo já está aberta!");
+                System.exit(1);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(JFramePrincipal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         initComponents();
 
         setLocationRelativeTo(null);

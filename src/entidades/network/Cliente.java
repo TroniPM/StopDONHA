@@ -20,8 +20,11 @@ import entidades.network.sendible.UserArray;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.Inet4Address;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.List;
+import javax.crypto.SecretKey;
 import util.Methods;
 import util.Session;
 
@@ -88,20 +91,36 @@ public class Cliente {
         Session.addLog(a);
 
         Socket socket = new Socket(Session.masterIP, PORT_SERVER);
-        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
         a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
 
         User user = new User();
         user.nickname = Session.nickname;
-        user.chavePublica = Session.security.passo2.chavePublicaCLIENTE;
-        user.chaveSessao = Session.security.passo2.chaveSessaoCLIENTE;
+        user.KEY_ASSINATURA = Session.security.passo2.KEY_PRIVATE;
+        user.KEY_ENCRIPTACAO = Session.security.passo2.KEY_ENCRIPTACAO;
+        user.KEY_PUBLICA = Session.security.passo2.KEY_PUBLICA;
+        user.ip = Session.security.passo2.IP;
 
-        //out.println(Session.security.brincar(user.convertToString()));
         //Encriptar com chave de sessão e enviar
-        out.println((user.convertToString()));
+        String g = user.convertToString();
+
+        /*SEGURANÇA*/
+        // Gera Assinatura
+        byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
+        // Cria um Package para enviar
+        security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG,
+                Session.security.TAG_NUMBER++, "user");
+        // Converte o Package em um array de bytes
+        byte[] data = p.convertToByteArray();
+        // Encriptar
+        byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
+        /*SEGURANÇA*/
+
+        //out.println(g);
+        out.writeObject(msgCriptografada);
 
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
@@ -274,11 +293,6 @@ public class Cliente {
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            /* Criptografo a chave publica e chave de sessão do cliente com a 
-            chave privada do servidor */
- /*out.println(Session.security.criptografa(obj.convertToString().getBytes("UFT-8"),
-                    Session.security.passo1.chavePublicaSERVIDOR));*/
-            //Encriptar com chave publica do servidor
             out.println(obj.convertToString());
 
             a = "Enviado StepTwo [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;

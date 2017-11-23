@@ -1,7 +1,10 @@
 package ui;
 
+import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import util.Session;
 
@@ -32,8 +35,12 @@ public class MainMenu extends javax.swing.JPanel {
     }
 
     public MainMenu() {
-        Session.security.init();
-        
+        try {
+            Session.security.init();
+        } catch (UnknownHostException ex) {
+            //Logger.getLogger(MainMenu.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         Session.clearAllData();
 
         initComponents();

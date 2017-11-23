@@ -7,17 +7,22 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import javax.crypto.SecretKey;
 
 /**
+ * Utilizado pelo CLIENTE.
  *
  * @author PMateus <paulomatew@gmailcom>
  */
 public class StepTwo implements Serializable {
 
-    public PublicKey chavePublicaCLIENTE;
-    public SecretKey chaveSessaoCLIENTE;
+    private String TAG = "Enviado do Cliente para o SERVIDOR";
+    public PublicKey KEY_PUBLICA = null;
+    public PrivateKey KEY_PRIVATE = null;
+    public SecretKey KEY_ENCRIPTACAO = null;
+    public String IP = null;
 
     /**
      *
@@ -57,11 +62,4 @@ public class StepTwo implements Serializable {
         return null;
     }
 
-    @Override
-    public String toString() {
-        String a = "Chave Pública CLIENTE:\n"
-                + chavePublicaCLIENTE.toString() + "\n"
-                + "Chave de Sessão CLIENTE: " + chaveSessaoCLIENTE.toString();
-        return a;
-    }
 }

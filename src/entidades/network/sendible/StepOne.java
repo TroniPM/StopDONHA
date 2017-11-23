@@ -7,15 +7,21 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import javax.crypto.SecretKey;
 
 /**
+ * Utilizado pelo SERVIDOR
  *
  * @author PMateus <paulomatew@gmailcom>
  */
 public class StepOne implements Serializable {
 
-    public PublicKey chavePublicaSERVIDOR;
+    private String TAG = "Enviado do Servidor para o CLiente";
+    public PublicKey KEY_PUBLICA = null;
+    public PrivateKey KEY_PRIVATE = null;
+    public SecretKey KEY_ENCRIPTACAO = null;
 
     /**
      *
