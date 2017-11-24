@@ -15,16 +15,12 @@ import entidades.network.sendible.StepOne;
 import entidades.network.sendible.StepTwo;
 import entidades.network.sendible.User;
 import entidades.network.sendible.UserArray;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Inet4Address;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.List;
 import javax.crypto.SecretKey;
 import org.bouncycastle.crypto.DataLengthException;
-import util.Methods;
 import util.Session;
 
 /**
@@ -384,7 +380,7 @@ public class Servidor {
 
         public void stepTwoType(StepTwo obj) {
             Session.addLog("RECEIVED: stepTwoType(): [OBJECT] recebido StepTwo: " + obj);
-            //Session.security.passo2 = obj;
+            obj.IP = socket.getInetAddress().getHostAddress();
             arrayStepTwo.add(obj);
         }
 
@@ -399,63 +395,29 @@ public class Servidor {
 
             byte[] msgBytes = null;
             String msg = null;
-            /*try {
-                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-                System.out.println(objectInputStream);
+            try {
+                msgBytes = (byte[]) new ObjectInputStream(socket.getInputStream()).readObject();
+                System.out.println("<<<<<<<<<<<<<<<<<" + msgBytes);
+                msg = new String(msgBytes);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            }*/
+            }
+            Session.addLog("#####RECEBEU##### TEXTO: " + msg);
+
             try {
-                try {
-                    //BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    //PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                    //String msg = in.readLine();
-                    msgBytes = (byte[]) new ObjectInputStream(socket.getInputStream()).readObject();
-                    msg = new String(msgBytes);
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                Session.addLog("#####RECEBEU##### TEXTO: " + msg);
-                //Session.addLog("#####RECEBEU##### TEXTO: " + msgBytes);
-
                 if (msg.equals("getkey")) {
                     Session.addLog("VAI ENVIAR CHAVE PUBLICA. Chegou ao fim. É DUMMY connection");
                     Session.conexaoCliente.sv_communicateStepOne(socket.getInetAddress().getHostAddress(), Session.security.passo1);
                     return;
                 }
 
-                //Se já for o servidor, desconsidero isto.
-                try {
-                    StepOne one = StepOne.convertFromString(msg);
-                    stepOneType(one);
-                    /* Envio pro servidor chave de sessão e chave publica do cliente
-                    ENCRIPTADO com chave pública do servidor a partir de DENTRO da
-                    thread do ListeningStepOne(), para que ele só envie StepTwo 
-                    encriptado após receber a chave publica do servidor. */
-                    Session.conexaoCliente.communicateStepTwo(Session.security.passo2);
-                    return;
-                } catch (DataLengthException ex) {
-                } catch (Exception ex) {
-                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                //#1 - DESCRIPTOGRAFAR COM CHAVE PUBLICA SERVIDOR
-                //TODO
-                try {
-                    //StepTwo two = StepTwo.convertFromString(new String(Session.security.decriptografa(msg.getBytes("UTF-8"), Session.security.passo1.chavePublicaSERVIDOR)));
-                    StepTwo two = StepTwo.convertFromString(msg);
-                    //SALVAR EM UM ARRAY.
-                    stepTwoType(two);
-                    return;
-                } catch (DataLengthException ex) {
-                } catch (Exception ex) {
-                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
                 //#2 - ENCONTRAR CHAVE DE SESSÃO DO CLIENTE ATUAL.
                 SecretKey keySessao = null;
                 PublicKey keyPublic = null;
                 PrivateKey keyPrivate = null;
+                //Caso seja uma conexão cliente normal
                 for (User inUser : arrayUsuariosComChaves) {
                     if (inUser.ip.equals(socket.getInetAddress().getHostAddress())) {
                         keySessao = inUser.KEY_ENCRIPTACAO;
@@ -463,11 +425,22 @@ public class Servidor {
                         keyPrivate = inUser.KEY_ASSINATURA;
                     }
                 }
+                //Caso seja conexão do cliente DENTRO do servidor
+
                 if (socket.getInetAddress().getHostAddress().equals(Inet4Address.getLocalHost().getHostAddress())) {
+                    keySessao = Session.security.passo2.KEY_ENCRIPTACAO;
+                    keyPublic = Session.security.passo2.KEY_PUBLICA;
+                    keyPrivate = Session.security.passo2.KEY_PRIVATE;
+                } else if (socket.getInetAddress().getHostAddress().equals(Session.masterIP)) {
+                    //para pegar a chave específica do servidor caso conexão venha do servidor
+                    Session.addLog("PACKAGE recebido foi do servidor...");
                     keySessao = Session.security.passo1.KEY_ENCRIPTACAO;
-                    keyPublic = Session.security.passo1.KEY_PUBLICA;
+                    //keyPublic = Session.security.passo1.KEY_PUBLICA;
                     keyPrivate = Session.security.passo1.KEY_PRIVATE;
+
+                    keyPublic = Session.security.chavePublicaSERVIDOR;
                 }
+
                 //#3 - PRINCIPAL
                 try {
                     byte[] data = Session.security.decriptografaSimetrica(msgBytes, keySessao);
@@ -477,25 +450,89 @@ public class Servidor {
                     if (Session.security.verifySignature(new String(p.data), p.signature, keyPublic)) {
                         Session.addLog("PACKAGE foi assinado corretamente.");
                     } else {
-                        System.out.println("PACKAGE não foi assinado corretamente. Descartando...");
+                        Session.addLog("PACKAGE não foi assinado corretamente. Descartando...");
                         return;
                     }
 
                     if (p.objeto.equals("user")) {
                         try {
                             userType(User.convertFromString(new String(p.data)));
+                            return;
+                        } catch (Exception ex) {
+                        }
+                    } else if (p.objeto.equals("endround")) {
+                        try {
+                            endRoundType(EndRound.convertFromString(new String(p.data)));
+                            return;
+                        } catch (Exception ex) {
+                        }
+                    } else if (p.objeto.equals("userarray")) {
+                        try {
+                            arrayListUser(UserArray.convertFromStringArray(new String(p.data)).array);
+                            return;
+                        } catch (Exception ex) {
+                        }
+                    } else if (p.objeto.equals("steptwo")) {
+                        try {
+                            stepTwoType(StepTwo.convertFromString(new String(p.data)));
+                            return;
+                        } catch (Exception ex) {
+                        }
+                    } else if (p.objeto.equals("gameruntime")) {
+                        try {
+                            gameRunType(GameRuntime.convertFromString(new String(p.data)));
+                            return;
+                        } catch (Exception ex) {
+                        }
+                    } else if (p.objeto.equals("stepone")) {
+                        try {
+                            stepOneType(StepOne.convertFromString(new String(p.data)));
+                            Session.conexaoCliente.communicateStepTwo(Session.security.passo2);
+                            return;
+                        } catch (Exception ex) {
+                        }
+                    } else if (p.objeto.equals("endroundarray")) {
+                        try {
+                            arrayListEndRound(EndRoundArray.convertFromStringArray(new String(p.data)).array);
+                            return;
                         } catch (Exception ex) {
                         }
                     }
                     //VERIFICAR SE MENSAGEM JÁ FOI ENVIADA
-                } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                //Se já for o servidor, desconsidero isto.
+                /*try {
+                    StepOne one = StepOne.convertFromString(msg);
+                    stepOneType(one);
+                    //Envio pro servidor chave de sessão e chave publica do cliente
+                    //ENCRIPTADO com chave pública do servidor a partir de DENTRO da
+                    //thread do ListeningStepOne(), para que ele só envie StepTwo 
+                    //encriptado após receber a chave publica do servidor.
+                    Session.conexaoCliente.communicateStepTwo(Session.security.passo2);
+                    return;
+                } catch (DataLengthException ex) {
+                } catch (Exception ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }*/
+                //#1 - DESCRIPTOGRAFAR COM CHAVE PUBLICA SERVIDOR
+                //TODO
+                /*try {
+                    //StepTwo two = StepTwo.convertFromString(new String(Session.security.decriptografa(msg.getBytes("UTF-8"), Session.security.passo1.chavePublicaSERVIDOR)));
+                    StepTwo two = StepTwo.convertFromString(msg);
+                    //SALVAR EM UM ARRAY.
+                    stepTwoType(two);
+                    return;
+                } catch (DataLengthException ex) {
+                } catch (Exception ex) {
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                }*/
+
                 //msg = new String(Session.security.decriptografaSimetrica(msg.getBytes(), keySessao));
                 //TODO
 
-                try {
+                /*try {
                     //EndRound endRound = EndRound.convertFromString(Session.security.desbrincar(msg));
                     EndRound endRound = EndRound.convertFromString((msg));
                     endRoundType(endRound);
@@ -503,8 +540,8 @@ public class Servidor {
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                try {
+                }*/
+ /*try {
                     //RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString(Session.security.desbrincar(msg));
                     RoundDataToValidate roundDataValidate = RoundDataToValidate.convertFromString((msg));
                     roundDataToValidateType(roundDataValidate);
@@ -512,8 +549,8 @@ public class Servidor {
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                try {
+                }*/
+ /*try {
                     //GameRuntime gameRuntime = GameRuntime.convertFromString(Session.security.desbrincar(msg));
                     GameRuntime gameRuntime = GameRuntime.convertFromString((msg));
                     gameRunType(gameRuntime);
@@ -521,8 +558,8 @@ public class Servidor {
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                try {
+                }*/
+ /*try {
                     //EndRoundArray endRoundArray = EndRoundArray.convertFromStringArray(Session.security.desbrincar(msg));
                     EndRoundArray endRoundArray = EndRoundArray.convertFromStringArray((msg));
                     arrayListEndRound(endRoundArray.array);
@@ -530,8 +567,8 @@ public class Servidor {
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                try {
+                }*/
+ /*try {
                     //UserArray userArray = UserArray.convertFromStringArray(Session.security.desbrincar(msg));
                     UserArray userArray = UserArray.convertFromStringArray((msg));
                     arrayListUser(userArray.array);
@@ -539,7 +576,7 @@ public class Servidor {
                 } catch (DataLengthException ex) {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                }*/
             } catch (IOException ex) {
                 //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 Session.canShowMainMenuByConnectionError = true;

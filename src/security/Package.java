@@ -5,6 +5,8 @@
  */
 package security;
 
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import entidades.network.sendible.EndRound;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,11 +18,11 @@ import util.Session;
 
 /**
  *
- * @author Matt
+ * @author PMateus <paulomatew@gmailcom>
  */
 public class Package implements Serializable {
 
-    public static final long serialVersionUID = -916243193401875381L;
+    //public static final long serialVersionUID = -916243193401875381L;
     public byte[] signature;
     public byte[] data;
     public String objeto;//qual o tipo do objeto para fazer o casting
@@ -35,19 +37,15 @@ public class Package implements Serializable {
         this.objeto = objeto;
     }
 
-    public void desbrincar() {
-
-    }
-
     public byte[] convertToByteArray() {
         try {
+            String str;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(this);
-
             byte[] objeto = baos.toByteArray();
+            //str = Base64.encode(objeto);
             oos.close();
-
             return objeto;
         } catch (IOException e) {
             e.printStackTrace();
@@ -69,5 +67,10 @@ public class Package implements Serializable {
 
         return null;
 
+    }
+
+    @Override
+    public String toString() {
+        return "tag: " + tag + "\tnumber: " + number;
     }
 }

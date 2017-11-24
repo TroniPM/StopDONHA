@@ -15,8 +15,8 @@ public class JustOneLock {
     FileLock lock;
     FileChannel channel;
 
-    public boolean isAppActive() throws Exception {
-        File file = new File(System.getProperty("user.home"),
+    public boolean isAppActive() throws Exception {/*System.getProperty("user.home")*/
+        File file = new File("./",
                 "FireZeMissiles1111" + ".tmp");
         channel = new RandomAccessFile(file, "rw").getChannel();
 

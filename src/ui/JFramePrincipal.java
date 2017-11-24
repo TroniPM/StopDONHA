@@ -1,6 +1,7 @@
 package ui;
 
 import java.awt.BorderLayout;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;

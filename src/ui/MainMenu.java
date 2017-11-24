@@ -6,6 +6,8 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import security.Security;
+import util.Methods;
 import util.Session;
 
 /**
@@ -135,17 +137,21 @@ public class MainMenu extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        Session.gRunTime.currentNickname = JOptionPane.showInputDialog(this, "Digite seu nickname:", Session.nickname);
-        if (Session.gRunTime.currentNickname != null) {
-            Session.nickname = Session.gRunTime.currentNickname;
-            String ip = "";
-            ip = JOptionPane.showInputDialog(this, "Digite o ip da Sala:", "192.168.0.104");
-            if (ip == null) {
-                JOptionPane.showMessageDialog(this, "IP inválido.");
-            } else {
-                Session.masterIP = ip;
-                Session.JFramePrincipal.changeScreen(new SalaDeEspera(false));
+        if (Session.security.getPublicKeyServerFromFile()) {
+            Session.gRunTime.currentNickname = JOptionPane.showInputDialog(this, "Digite seu nickname:", Session.nickname);
+            if (Session.gRunTime.currentNickname != null) {
+                Session.nickname = Session.gRunTime.currentNickname;
+                String ip = "";
+                ip = JOptionPane.showInputDialog(this, "Digite o ip da Sala:", "192.168.0.104");
+                if (ip == null) {
+                    JOptionPane.showMessageDialog(this, "IP inválido.");
+                } else {
+                    Session.masterIP = ip;
+                    Session.JFramePrincipal.changeScreen(new SalaDeEspera(false));
+                }
             }
+        } else {
+            JOptionPane.showMessageDialog(this, "Não foi possível encontrar a chave pública do Servidor.");
         }
     }//GEN-LAST:event_jButton6ActionPerformed
 
