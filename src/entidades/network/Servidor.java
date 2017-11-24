@@ -418,11 +418,18 @@ public class Servidor {
                 PublicKey keyPublic = null;
                 PrivateKey keyPrivate = null;
                 //Caso seja uma conexão cliente normal
-                for (User inUser : arrayUsuariosComChaves) {
+                /*for (User inUser : arrayUsuariosComChaves) {
                     if (inUser.ip.equals(socket.getInetAddress().getHostAddress())) {
                         keySessao = inUser.KEY_ENCRIPTACAO;
                         keyPublic = inUser.KEY_PUBLICA;
                         keyPrivate = inUser.KEY_ASSINATURA;
+                    }
+                }*/
+                for (StepTwo inStepTwo : arrayStepTwo) {
+                    if (inStepTwo.IP.equals(socket.getInetAddress().getHostAddress())) {
+                        keySessao = inStepTwo.KEY_ENCRIPTACAO;
+                        keyPublic = inStepTwo.KEY_PUBLICA;
+                        keyPrivate = inStepTwo.KEY_PRIVATE;
                     }
                 }
                 //Caso seja conexão do cliente DENTRO do servidor
