@@ -1,1 +1,1 @@
-TODO: adicionar contador e verificar se mensagem já foi enviada.
+TODO: ainda não faz verificação de mensagens repetidas. Colocar verificador.

@@ -1,7 +1,13 @@
 package ui;
 
 import java.awt.BorderLayout;
+import java.io.File;
+import java.io.IOException;
 import java.net.UnknownHostException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileSystemException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -18,6 +24,7 @@ public class JFramePrincipal extends javax.swing.JFrame {
 
     public static JPanel currentScreen = null;
     private String mainTitle = "StopDONHA";
+    private JustOneLock trava = null;
 
     public void changeScreen(JPanel panel) {
         if (currentScreen != null) {
@@ -45,9 +52,9 @@ public class JFramePrincipal extends javax.swing.JFrame {
      * Creates new form JFrame
      */
     public JFramePrincipal() {
-        JustOneLock u = new JustOneLock();
+        trava = new JustOneLock();
         try {
-            if (u.isAppActive()) {
+            if (trava.isAppActive()) {
                 JOptionPane.showMessageDialog(null, "Uma instância do Jogo já está aberta!");
                 System.exit(1);
             }
@@ -74,10 +81,15 @@ public class JFramePrincipal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("StopDONHA");
         setPreferredSize(new java.awt.Dimension(620, 535));
         setResizable(false);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -93,6 +105,27 @@ public class JFramePrincipal extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        fechar();
+    }//GEN-LAST:event_formWindowClosing
+
+    public void fechar() {
+        if (JOptionPane.showConfirmDialog(this,
+                "Você tem certeza que deseja sair?", "Fechar?",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+
+            try {
+                trava.removeFile();
+            } catch (Exception ex) {
+                Logger.getLogger(JFramePrincipal.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            trava.removeFile();
+            System.exit(0);
+        }
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -107,16 +140,24 @@ public class JFramePrincipal extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(JFramePrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFramePrincipal.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(JFramePrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFramePrincipal.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(JFramePrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFramePrincipal.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(JFramePrincipal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(JFramePrincipal.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>

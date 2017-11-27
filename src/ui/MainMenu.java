@@ -1,5 +1,6 @@
 package ui;
 
+import java.awt.event.WindowEvent;
 import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -121,7 +122,10 @@ public class MainMenu extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        System.exit(0);
+
+        Session.JFramePrincipal.dispatchEvent(
+                new WindowEvent(Session.JFramePrincipal, WindowEvent.WINDOW_CLOSING));
+        //System.exit(0);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed

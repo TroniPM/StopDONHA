@@ -158,7 +158,7 @@ public class Cliente {
         }
     }
 
-    public void communicateStepTwo(StepTwo obj) {
+    public void communicateStepTwo() {
         try {
             String a = "communicateStepTwo: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
@@ -168,21 +168,20 @@ public class Cliente {
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            String g = obj.convertToString();
+            String g = Session.security.passo2.convertToString();
 
             /*SEGURANÇA*/
             // Gera Assinatura
-            byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
+            //byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
             // Cria um Package para enviar
-            security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG,
-                    Session.security.TAG_NUMBER++, "steptwo");
+            //security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG, Session.security.TAG_NUMBER++, "steptwo");
             // Converte o Package em um array de bytes
-            byte[] data = p.convertToByteArray();
+            //byte[] data = p.convertToByteArray();
             // Encriptar
-            byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
+            //byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
             /*SEGURANÇA*/
-
-            out.writeObject(msgCriptografada);
+            out.writeObject(g.getBytes());
+            //out.writeObject(msgCriptografada);
 
             a = "Enviado StepTwo [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
@@ -233,7 +232,7 @@ public class Cliente {
         }
     }
 
-    public void sv_communicateStepOne(String ip, StepOne obj) {
+    public void sv_communicateStepOne(String ip) {
         try {
             String a = "sv_communicateStepOne: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
@@ -246,21 +245,20 @@ public class Cliente {
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            String g = obj.convertToString();
+            String g = Session.security.passo1.convertToString();
 
             /*SEGURANÇA*/
             // Gera Assinatura
-            byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
+            //byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
             // Cria um Package para enviar
-            security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG,
-                    Session.security.TAG_NUMBER++, "stepone");
+            //security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG, Session.security.TAG_NUMBER++, "stepone");
             // Converte o Package em um array de bytes
-            byte[] data = p.convertToByteArray();
+            //byte[] data = p.convertToByteArray();
             // Encriptar
-            byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
+            //byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
             /*SEGURANÇA*/
-
-            out.writeObject(msgCriptografada);
+            //out.writeObject(msgCriptografada);
+            out.writeObject(g.getBytes());
 
             a = "Enviado StepOne [OBJECT] para" + ip + ":" + PORT_CLIENT;
             Session.addLog(a);

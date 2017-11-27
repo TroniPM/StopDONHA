@@ -6,18 +6,24 @@
 package util;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JustOneLock {
 
-    FileLock lock;
-    FileChannel channel;
+    private FileLock lock;
+    private FileChannel channel;
+    private String pathname = "./";
+    private String filename = "FireZeMissiles1111.tmp";
+    private File file = null;
 
     public boolean isAppActive() throws Exception {/*System.getProperty("user.home")*/
-        File file = new File("./",
-                "FireZeMissiles1111" + ".tmp");
+        file = new File(pathname, filename);
         channel = new RandomAccessFile(file, "rw").getChannel();
 
         lock = channel.tryLock();
@@ -36,5 +42,18 @@ public class JustOneLock {
             }
         });
         return false;
+    }
+
+    public void removeFile() {
+        try {
+            lock.release();
+            channel.close();
+
+            Files.deleteIfExists(file.toPath());
+        } catch (IOException ex) {
+            Logger.getLogger(JustOneLock.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(JustOneLock.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

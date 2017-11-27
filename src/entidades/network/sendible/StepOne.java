@@ -60,4 +60,13 @@ public class StepOne implements Serializable {
         }
         return null;
     }
+
+    @Override
+    public String toString() {
+        String a = "########## KEY_PUBLICA: " + KEY_PUBLICA + "\n";
+        a += "########## KEY_PRIVATE: " + KEY_PRIVATE + "\n";
+        a += "########## KEY_ENCRIPTACAO: " + KEY_ENCRIPTACAO + "\n";
+
+        return a;
+    }
 }

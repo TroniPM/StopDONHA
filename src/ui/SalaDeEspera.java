@@ -118,17 +118,30 @@ public class SalaDeEspera extends javax.swing.JPanel {
             jButton1.setEnabled(false);
 
             try {
-                //Envia pro servidor qualquer coisa apenas para ele saber q um ip se conectou.
-                Session.conexaoCliente.communicateDummy();
-                //Recebo chave publica do servidor
+                /**
+                 * Processo de troca de chaves: 1*- Inicialmente o Cliente envia
+                 * sua chave de sessão/publica para o servidor. 2*- Quando o
+                 * servidor recebe essas chaves, envia as suas chave de
+                 * sessão/pública para o determinado ip. 3*- O cliente irá
+                 * receber essas chaves. 4*- Quando o cliente receber essas
+                 * chaves, irá entrar na sala, enviando os dados necessário.
+                 * APÓS O 3*, TODOS OS DADOS ENVIADOS SÃO CRITOGRAFADOS. Ao
+                 * Cliente enviar para o servidor alguma informação, é
+                 * criptografado com sua própria chave de sessão (o servidor ao
+                 * receber esta informação, usará a chave de sessão (1*) para
+                 * desencriptar os dados e a chave pública para verificar a
+                 * assinatura e só então utilizará os dados). De igual forma, ao
+                 * receber dados do servidor, o cliente desencriptará os dados
+                 * (2*) com a chave de sessão do servidor e verificar a
+                 * assinatura com a chave pública do servidor, para então, se
+                 * tudo ok, utilizar os dados.
+                 *
+                 */
+
+                //Inicialmente envio para o servidor a chave de sessão e pública.
+                Session.conexaoCliente.communicateStepTwo();
+                //Recebo chave publica e de sessão do servidor  dentro faço o envio da classe user
                 Session.conexaoServidor.ListeningStepOne();
-                /* Envio pro servidor chave de sessão e chave publica do cliente
-                ENCRIPTADO com chave pública do servidor a partir de DENTRO da
-                thread do ListeningStepOne(), para que ele só envie StepTwo 
-                encriptado após receber a chave publica do servidor. */
-                //Session.conexaoCliente.communicateStepTwo(Session.security.passo2);
-                //Aviso ao servidor que vou entrar na sala.
-                Session.conexaoCliente.communicateWaitingRoom();
                 //Espero o servidor iniciar o jogo.
                 Session.conexaoServidor.ListeningStartGame();
                 canStartGameThreadCheck();

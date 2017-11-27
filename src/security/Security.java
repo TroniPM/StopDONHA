@@ -122,6 +122,8 @@ public class Security {
             decryptedText = cipher.doFinal(encryptedBytes);
         } catch (Exception ex) {
             ex.printStackTrace();
+            Session.addLog("Não foi possível decriptar as informações. "
+                    + "Esse pacote de dados não é decriptável com esta chave." + chaveSimetrica);
         }
 
         return decryptedText;
