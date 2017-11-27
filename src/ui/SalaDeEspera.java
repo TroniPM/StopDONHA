@@ -14,9 +14,9 @@ import javax.swing.table.DefaultTableModel;
 import entidades.network.Servidor;
 import entidades.network.sendible.User;
 import java.awt.Dimension;
-import java.net.ServerSocket;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import util.Methods;
 import util.Session;
 
 /**
@@ -109,7 +109,8 @@ public class SalaDeEspera extends javax.swing.JPanel {
 
         if (!isMaster) {
             Session.isServidor = false;
-            this.jLabel1.setText("Sala de Espera em " + Session.masterIP + ". Aguardando o início do jogo...");
+            this.jLabel3.setText(Methods.getAvaliableIps());
+            //this.jLabel1.setText("Sala de Espera em " + Session.masterIP + ". Aguardando o início do jogo...");
             jScrollPane1.setEnabled(false);
             jScrollPane1.setVisible(false);
             this.remove(jScrollPane1);
@@ -167,7 +168,8 @@ public class SalaDeEspera extends javax.swing.JPanel {
                     Session.JFramePrincipal.changeScreen(new MainMenu());
 
                 }
-                this.jLabel1.setText("Sala de Espera criada. Seu IP local é: " + Session.masterIP);
+                this.jLabel3.setText("<html>" + Methods.getAvaliableIps() + "</html>");
+                //this.jLabel1.setText("Sala de Espera criada. Seu IP local é: " + Session.masterIP);
 
             } catch (UnknownHostException ex) {
                 Logger.getLogger(SalaDeEspera.class
@@ -191,6 +193,7 @@ public class SalaDeEspera extends javax.swing.JPanel {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jButton1 = new javax.swing.JButton();
@@ -202,8 +205,12 @@ public class SalaDeEspera extends javax.swing.JPanel {
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel1.setText("Sala de Espera");
+        jLabel1.setText("Aguardando o início do jogo... Sala de Espera em");
         add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 50, -1, -1));
+
+        jLabel3.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jLabel3.setText("aaaaaaaaaaaa");
+        add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 80, 420, 50));
 
         jTable1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
@@ -344,6 +351,7 @@ public class SalaDeEspera extends javax.swing.JPanel {
     private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables

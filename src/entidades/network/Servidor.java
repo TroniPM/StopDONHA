@@ -16,11 +16,16 @@ import entidades.network.sendible.StepTwo;
 import entidades.network.sendible.User;
 import entidades.network.sendible.UserArray;
 import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Enumeration;
 import java.util.List;
 import javax.crypto.SecretKey;
 import org.bouncycastle.crypto.DataLengthException;
+import util.Methods;
 import util.Session;
 
 /**
@@ -424,7 +429,7 @@ public class Servidor {
                     }
                 }
                 //Caso seja conexão do cliente DENTRO do servidor
-                if (socket.getInetAddress().getHostAddress().equals(Inet4Address.getLocalHost().getHostAddress())) {
+                if (Methods.isIpFromServidor(socket.getInetAddress().getHostAddress())) {
                     Session.addLog("PACKAGE recebido foi do Cliente DENTRO servidor...");
                     keySessao = Session.security.passo2.KEY_ENCRIPTACAO;
                     keyPublic = Session.security.passo2.KEY_PUBLICA;
@@ -450,6 +455,11 @@ public class Servidor {
                     Session.conexaoCliente.sv_communicateStepOne(socket.getInetAddress().getHostAddress());
                     return;
                 } catch (Exception ex) {
+                }
+
+                if (keySessao == null) {
+                    Session.addLog("Não foi possível encontrar uma chave de decriptação.");
+                    return;
                 }
 
                 //#3 - PRINCIPAL
@@ -500,7 +510,7 @@ public class Servidor {
                 } catch (Exception ex) {
                     //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 Session.canShowMainMenuByConnectionError = true;
             }

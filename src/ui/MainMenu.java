@@ -4,11 +4,7 @@ import java.awt.event.WindowEvent;
 import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import security.Security;
-import util.Methods;
 import util.Session;
 
 /**

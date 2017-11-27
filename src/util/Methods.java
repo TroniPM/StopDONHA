@@ -1,6 +1,7 @@
 package util;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import entidades.network.Servidor;
 import entidades.network.sendible.EndRound;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,6 +11,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -118,5 +125,58 @@ public class Methods {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean isIpFromServidor(String ip) {
+        try {
+            if (ip.equals(Inet4Address.getLocalHost().getHostAddress())) {
+                return true;
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        try {
+            Enumeration e = NetworkInterface.getNetworkInterfaces();
+            while (e.hasMoreElements()) {
+                NetworkInterface n = (NetworkInterface) e.nextElement();
+                Enumeration ee = n.getInetAddresses();
+                while (ee.hasMoreElements()) {
+                    InetAddress i = (InetAddress) ee.nextElement();
+                    //System.out.println(i.getHostAddress());
+                    if (i.getHostAddress().equals(ip)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+
+        return false;
+    }
+
+    public static String getAvaliableIps() {
+        String ret = "";
+        try {
+            Enumeration e = NetworkInterface.getNetworkInterfaces();
+            while (e.hasMoreElements()) {
+                NetworkInterface n = (NetworkInterface) e.nextElement();
+                Enumeration ee = n.getInetAddresses();
+                while (ee.hasMoreElements()) {
+                    InetAddress i = (InetAddress) ee.nextElement();
+                    //System.out.println(i.getHostAddress());
+                    ret += "'" + i.getHostAddress() + "'";
+                    if (ee.hasMoreElements()) {
+                        ret += " ou ";
+                    }
+                }
+                if (e.hasMoreElements()) {
+                    ret += " ou ";
+                }
+            }
+        } catch (Exception e) {
+        }
+
+        return ret;
     }
 }
