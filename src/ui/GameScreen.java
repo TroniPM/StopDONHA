@@ -13,12 +13,9 @@ import entidades.network.DataNetworkManager;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.RoundDataToValidate;
 import java.awt.Dimension;
-import javax.swing.AbstractAction;
-import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
 import util.Session;
 
 /**

@@ -125,11 +125,11 @@ public class MainMenu extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        Session.JFramePrincipal.changeScreen(new Sobre());
+        Session.JFramePrincipal.changeScreen(new About());
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        Session.JFramePrincipal.changeScreen(new ComoJogar());
+        Session.JFramePrincipal.changeScreen(new HowToPlay());
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
@@ -147,7 +147,7 @@ public class MainMenu extends javax.swing.JPanel {
                     JOptionPane.showMessageDialog(this, "IP inválido.");
                 } else {
                     Session.masterIP = ip;
-                    Session.JFramePrincipal.changeScreen(new SalaDeEspera(false));
+                    Session.JFramePrincipal.changeScreen(new WaitingRoom(false));
                 }
             }
         } else {

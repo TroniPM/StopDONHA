@@ -38,10 +38,14 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import util.Methods;
@@ -302,6 +306,168 @@ public class Security {
         return null;
     }
 
+    public byte[] criptografa(byte[] texto, PublicKey chave) {
+        byte[] cipherText = null;
+
+        try {
+            Cipher cipher = Cipher.getInstance("RSA");
+
+            // Criptografa o texto puro usando a chave Pública
+            cipher.init(Cipher.ENCRYPT_MODE, chave);
+            cipherText = cipher.doFinal(texto);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return cipherText;
+    }
+
+    public byte[] decriptografia(byte[] texto, PrivateKey chave) {
+        byte[] dectyptedText = null;
+        try {
+            Cipher cipher = Cipher.getInstance("RSA");
+
+            // Decriptografa o texto puro usando a chave Privada
+            cipher.init(Cipher.DECRYPT_MODE, chave);
+            dectyptedText = cipher.doFinal(texto);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return dectyptedText;
+    }
+
+    public static void main(String[] args) {
+        java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        PublicKey publicKey = null;
+        PrivateKey privateKey = null;
+        try {
+            publicKey = Methods.readPublicKey("public.der");
+            privateKey = Methods.readPrivateKey("private.der");
+        } catch (IOException ex) {
+            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
+            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        Security s = new Security();
+        s.init2();
+        String msg = "HAHAHAHEHEHEHIHIHI";
+        System.out.println("MENSAGEM ORIGINAL: " + msg);
+        byte[] criptografaSimetrica = null;
+        try {
+            criptografaSimetrica = s.criptografa(msg.getBytes("UTF-8"), publicKey);
+            System.out.println("MENSAGEM ENCRIPTADA" + new String(criptografaSimetrica));
+
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        try {
+            byte[] recovered_message = s.decriptografia(criptografaSimetrica, privateKey);
+            System.out.println("MENSAGEM RECUPERADA: " + new String(recovered_message));
+
+        } catch (Exception ex) {
+            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        /*try {
+            byte[] message = "Hello World".getBytes("UTF8");
+            byte[] secret = criptografa(message, publicKey);
+            System.out.println("Encriptado: " + new String(secret));
+            byte[] recovered_message = decriptografia(secret, privateKey);
+            System.out.println(new String(recovered_message, "UTF8"));
+            } catch (Exception e) {
+            e.printStackTrace();
+            }*/
+    }
+
+    private CBCBlockCipher cbcBlockCipher = null;
+    private SecureRandom random = null;
+    private KeyParameter key = null;
+    private BlockCipherPadding bcp = null;
+
+    private void setPadding(BlockCipherPadding bcp) {
+        this.bcp = bcp;
+    }
+
+    private void setKey(byte[] key) {
+        this.key = new KeyParameter(key);
+    }
+
+    /**
+     *
+     * @param input vai ser a mensagem encriptada
+     * @param encrypt
+     * @return assinatura da mensagem, para verificação no outro lado da
+     * comunicação.
+     * @throws DataLengthException
+     * @throws InvalidCipherTextException
+     */
+    private byte[] processing(byte[] input, boolean encrypt)
+            throws DataLengthException, InvalidCipherTextException {
+
+        PaddedBufferedBlockCipher pbbc
+                = new PaddedBufferedBlockCipher(cbcBlockCipher, bcp);
+
+        int blockSize = cbcBlockCipher.getBlockSize();
+        int inputOffset = 0;
+        int outputOffset = 0;
+        int inputLength = input.length;
+
+        byte[] iv = new byte[blockSize];
+
+        pbbc.init(encrypt, new ParametersWithIV(key, iv));
+        byte[] output = new byte[pbbc.getOutputSize(inputLength) + outputOffset];
+
+        if (encrypt) {
+            System.arraycopy(iv, 0, output, 0, blockSize);
+        }
+
+        int outputLength = outputOffset + pbbc.processBytes(
+                input, inputOffset, inputLength, output, outputOffset);
+
+        outputLength += pbbc.doFinal(output, outputLength);
+
+        //byte[] out = new byte[outputLength];
+        //System.arraycopy(output, 0, out, 0, outputLength);
+        byte[] out = new byte[blockSize];
+        System.arraycopy(output, outputLength - blockSize, out, 0, blockSize);
+
+        return out;
+
+    }
+
+    public void init2() {
+        String token = "OIUhfdeaioUBIAEUFGHKajBEDUH39418H2398H(*yu#()*!u)#(!@#uhijndfasdasd";
+        byte[] key = null;
+        try {
+            key = token.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        MessageDigest sha = null;
+        try {
+            sha = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        key = sha.digest(key);
+        key = Arrays.copyOf(key, 16); // use only first 128 bit
+
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+
+        this.cbcBlockCipher = new CBCBlockCipher(new AESEngine());
+        this.random = new SecureRandom();
+        this.bcp = new PKCS7Padding();
+
+        this.setPadding(new PKCS7Padding());
+        this.setKey(secretKeySpec.getEncoded());
+    }
+
     /*private CBCBlockCipher cbcBlockCipher = null;
     private SecureRandom random = null;
     private KeyParameter key = null;
@@ -337,15 +503,15 @@ public class Security {
         int outputOffset = 0;
         int inputLength = input.length;
 
-        byte[] iv = new byte[blockSize];
-        if (encrypt) {
-            random.nextBytes(iv);
-            outputOffset += blockSize;
-        } else {
-            System.arraycopy(input, 0, iv, 0, blockSize);
-            inputOffset += blockSize;
-            inputLength -= blockSize;
-        }
+       // byte[] iv = new byte[blockSize];
+       // if (encrypt) {
+       //     random.nextBytes(iv);
+       //     outputOffset += blockSize;
+       // } else {
+       //     System.arraycopy(input, 0, iv, 0, blockSize);
+       //     inputOffset += blockSize;
+       //     inputLength -= blockSize;
+       // }
 
         pbbc.init(encrypt, new ParametersWithIV(key, iv));
         byte[] output = new byte[pbbc.getOutputSize(inputLength) + outputOffset];
@@ -359,8 +525,10 @@ public class Security {
 
         outputLength += pbbc.doFinal(output, outputLength);
 
-        byte[] out = new byte[outputLength];
-        System.arraycopy(output, 0, out, 0, outputLength);
+        //byte[] out = new byte[outputLength];
+        //System.arraycopy(output, 0, out, 0, outputLength);
+        byte[] out = new byte[blockSize];
+        System.arraycopy(output, outputLength-blockSize, out, 0, blockSize);
 
         return out;
 

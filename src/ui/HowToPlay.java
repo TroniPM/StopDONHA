@@ -6,12 +6,12 @@ import util.Session;
  *
  * @author PMateus <paulomatew@gmailcom>
  */
-public class ComoJogar extends javax.swing.JPanel {
+public class HowToPlay extends javax.swing.JPanel {
 
     /**
      * Creates new form ComoJogar
      */
-    public ComoJogar() {
+    public HowToPlay() {
         initComponents();
 
         Session.JFramePrincipal.changeTitleText("Sobre");

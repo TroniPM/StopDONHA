@@ -6,12 +6,12 @@ import util.Session;
  *
  * @author PMateus <paulomatew@gmailcom>
  */
-public class Sobre extends javax.swing.JPanel {
+public class About extends javax.swing.JPanel {
 
     /**
      * Creates new form Sobre
      */
-    public Sobre() {
+    public About() {
         initComponents();
 
         Session.JFramePrincipal.changeTitleText("Sobre");

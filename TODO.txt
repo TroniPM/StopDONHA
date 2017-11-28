@@ -1,1 +1,0 @@
-TODO: ainda não faz verificação de mensagens repetidas. Colocar verificador.

@@ -63,7 +63,7 @@ public class Cliente {
 
         User user = new User();
         user.nickname = Session.nickname;
-        user.KEY_ASSINATURA = Session.security.passo2.KEY_PRIVATE;
+        user.KEY_PRIVATE = Session.security.passo2.KEY_PRIVATE;
         user.KEY_ENCRIPTACAO = Session.security.passo2.KEY_ENCRIPTACAO;
         user.KEY_PUBLICA = Session.security.passo2.KEY_PUBLICA;
         user.ip = Session.security.passo2.IP;

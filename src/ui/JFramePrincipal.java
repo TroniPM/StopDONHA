@@ -1,13 +1,6 @@
 package ui;
 
 import java.awt.BorderLayout;
-import java.io.File;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.FileSystemException;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;

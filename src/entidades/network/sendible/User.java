@@ -7,12 +7,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.List;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 /**
@@ -27,7 +23,7 @@ public class User implements Serializable {
     public int pontuacao = 0;
 
     /**/
-    public PrivateKey KEY_ASSINATURA = null;
+    public PrivateKey KEY_PRIVATE = null;
     public SecretKey KEY_ENCRIPTACAO = null;
     public PublicKey KEY_PUBLICA = null;
 

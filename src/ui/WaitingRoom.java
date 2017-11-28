@@ -23,7 +23,7 @@ import util.Session;
  *
  * @author PMateus <paulomatew@gmailcom>
  */
-public class SalaDeEspera extends javax.swing.JPanel {
+public class WaitingRoom extends javax.swing.JPanel {
 
     private Object columnNames[] = {"IP", "Nickname"};
     public DefaultTableModel modelJtable = new DefaultTableModel(columnNames, 0);
@@ -100,7 +100,7 @@ public class SalaDeEspera extends javax.swing.JPanel {
         }
     }
 
-    public SalaDeEspera(boolean isMaster) {
+    public WaitingRoom(boolean isMaster) {
         initComponents();
         Session.JFramePrincipal.changeTitleText("Sala de Espera");
 
@@ -172,7 +172,7 @@ public class SalaDeEspera extends javax.swing.JPanel {
                 //this.jLabel1.setText("Sala de Espera criada. Seu IP local é: " + Session.masterIP);
 
             } catch (UnknownHostException ex) {
-                Logger.getLogger(SalaDeEspera.class
+                Logger.getLogger(WaitingRoom.class
                         .getName()).log(Level.SEVERE, null, ex);
             }
 
