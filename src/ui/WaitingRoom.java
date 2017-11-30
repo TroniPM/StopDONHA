@@ -16,6 +16,7 @@ import entidades.network.sendible.User;
 import java.awt.Dimension;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import security.ChaveSessao;
 import util.Methods;
 import util.Session;
 
@@ -140,10 +141,13 @@ public class WaitingRoom extends javax.swing.JPanel {
                  */
 
                 //Inicialmente envio para o servidor a chave de sessão e pública.
-                Session.conexaoCliente.communicateStepTwo();
+                //Session.conexaoCliente.communicateStepTwo();
                 //Recebo chave publica e de sessão do servidor  dentro faço o envio da classe user
-                Session.conexaoServidor.ListeningStepOne();
+                //Session.conexaoServidor.ListeningStepOne();
                 //Espero o servidor iniciar o jogo.
+                Session.security.KEY = new ChaveSessao(true);
+                Session.conexaoCliente.startScheme();
+                Session.conexaoCliente.communicateWaitingRoomEnter();
                 Session.conexaoServidor.ListeningStartGame();
                 canStartGameThreadCheck();
             } catch (Exception ex) {
@@ -159,7 +163,15 @@ public class WaitingRoom extends javax.swing.JPanel {
 
                 Session.conexaoServidor.ListeningWaitingRoom();
                 try {
-                    Session.conexaoCliente.communicateWaitingRoom();
+                    //Crio a chave de sessão
+                    Session.security.KEY = new ChaveSessao(true);
+                    Session.conexaoCliente.startScheme();
+                    /**
+                     *
+                     */
+                    //Session.conexaoCliente.communicateWaitingRoom();
+                    Session.conexaoCliente.communicateWaitingRoomEnter();
+
                 } catch (IOException ex) {
                     Session.clearAllData();
                     cancelAllThreads();
@@ -291,8 +303,19 @@ public class WaitingRoom extends javax.swing.JPanel {
             if (ips[i].equals(Session.masterIP)) {
                 continue;
             }
+            ChaveSessao cs = null;
+            for (ChaveSessao in : Session.conexaoServidor.arrayChaveSessao) {
+                System.out.println(in.ip + " <><><> " + ips[i]);
+                if (in.ip.equals(ips[i])) {
+                    cs = in;
+                }
+            }
+            System.out.println("ENVIANDO GAMERUNTIME");
+            System.out.println("#########################" + "\n" + cs);
             //Envio pra cada cliente o OBJECT
-            Session.conexaoCliente.sv_communicateStartGame(ips[i], Session.gRunTime);
+            //Session.conexaoCliente.sv_communicateStartGame(ips[i], Session.gRunTime);
+            Session.conexaoCliente.communicateStartRound(ips[i], Session.gRunTime,
+                    cs.AUTENTICACAO_SERVIDOR, cs.ENCRIPTACAO_SERVIDOR);
         }
         cancelAllThreads();
         Session.JFramePrincipal.changeScreen(new GameScreen());

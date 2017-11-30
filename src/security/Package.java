@@ -23,17 +23,17 @@ import util.Session;
 public class Package implements Serializable {
 
     //public static final long serialVersionUID = -916243193401875381L;
-    public byte[] signature;
+    public byte[] auth;
     public byte[] data;
     public String objeto;//qual o tipo do objeto para fazer o casting
     public int number;
     public String tag;
 
-    public Package(byte[] signature, byte[] data, String tag, int number, String objeto) {
-        this.signature = signature;
+    public Package(byte[] auth, byte[] data, String tag, int number, String objeto) {
+        this.auth = auth;
+        this.data = data;
         this.tag = tag;
         this.number = number;
-        this.data = data;
         this.objeto = objeto;
     }
 

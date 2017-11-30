@@ -103,6 +103,22 @@ public class Methods {
         return false;
     }
 
+    public static byte[] convertToByteArray(Object obj) {
+        try {
+            //String str;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(obj);
+            byte[] objeto = baos.toByteArray();
+            //str = Base64.encode(objeto);
+            oos.close();
+            return objeto;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static String convertToString(Object obj) {
         try {
             String str;
@@ -119,13 +135,17 @@ public class Methods {
         return null;
     }
 
-    /**
-     * Fazer CASTING após uso.
-     *
-     * @param str
-     * @return
-     * @throws ClassNotFoundException
-     */
+    public static Object convertFromByteArray(byte[] str) throws ClassNotFoundException {
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(str);
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            return ois.readObject();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static Object convertFromString(String str) throws ClassNotFoundException {
         try {
             ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decode(str));

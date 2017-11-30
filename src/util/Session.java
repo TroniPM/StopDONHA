@@ -20,7 +20,8 @@ public class Session {
     public static GameRuntime gRunTime = new GameRuntime();
 
     public static String nickname = "Server";
-    public static String masterIP = "127.0.0.1";
+    //public static String masterIP = "127.0.0.1";
+    public static String masterIP = "localhost";
     public static boolean isServidor = true;
 
     public static boolean canStartGame = false;

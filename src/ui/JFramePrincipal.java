@@ -103,7 +103,7 @@ public class JFramePrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowClosing
 
     public void fechar() {
-        if (JOptionPane.showConfirmDialog(this,
+        /*if (JOptionPane.showConfirmDialog(this,
                 "Você tem certeza que deseja sair?", "Fechar?",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
@@ -114,9 +114,10 @@ public class JFramePrincipal extends javax.swing.JFrame {
                 Logger.getLogger(JFramePrincipal.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            trava.removeFile();
+            //trava.removeFile();
             System.exit(0);
-        }
+        }*/
+        System.exit(0);
     }
 
     /**
