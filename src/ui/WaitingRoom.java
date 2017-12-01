@@ -149,7 +149,15 @@ public class WaitingRoom extends javax.swing.JPanel {
                 //Criando chaves
                 Session.security.KEY = new ChaveSessao(true);
                 //Enviando para o servidor as 4 chaves e esperando resposta de recebimento
-                Session.conexaoCliente.startScheme();
+                boolean flag = Session.conexaoCliente.startScheme();
+                if (!flag) {
+                    JOptionPane.showMessageDialog(this, "Servidor respondeu: chave de sessão enviada "
+                            + "é inválida. Provavelmente a chave pública do "
+                            + "servidor dentro do cliente não dá match com a "
+                            + "chave privada dentro do servidor. NÃO vai prosseguir...");
+                    throw new Exception("provavelmente a chave pública utilizada pelo cliente é inválida");
+                }
+
                 //Resposta de envio recebida e enviando dados para entrar na sala.
                 Session.conexaoCliente.communicateWaitingRoomEnter();
                 //Socket esperando gatilho ser disparado no clienteMAIN
@@ -158,8 +166,14 @@ public class WaitingRoom extends javax.swing.JPanel {
                 canStartGameThreadCheck();
             } catch (Exception ex) {
                 jLabel1.setText("Erro: " + ex.getLocalizedMessage());
-                Session.JFramePrincipal.changeScreen(new MainMenu());
-
+                Session.clearAllData();
+                cancelAllThreads();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Session.JFramePrincipal.changeScreen(new MainMenu());
+                    }
+                }).start();
             }
 
         } else {
@@ -173,16 +187,20 @@ public class WaitingRoom extends javax.swing.JPanel {
                     //Crio a chave de sessão pra ele mesmo
                     Session.security.KEY = new ChaveSessao(true);
                     //Envio para o servidor (ele mesmo) suas chaves e aguardo resposta
-                    Session.conexaoCliente.startScheme();
+                    //Session.conexaoCliente.startScheme();
                     //Resposta recebida, envio os dados para entrada na sala (encriptados)
                     Session.conexaoCliente.communicateWaitingRoomEnter();
 
                 } catch (IOException ex) {
+                    jLabel1.setText("Erro: " + ex.getLocalizedMessage());
                     Session.clearAllData();
                     cancelAllThreads();
-
-                    JOptionPane.showMessageDialog(this, ex.getLocalizedMessage());
-                    Session.JFramePrincipal.changeScreen(new MainMenu());
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Session.JFramePrincipal.changeScreen(new MainMenu());
+                        }
+                    }).start();
 
                 }
                 this.jLabel3.setText("<html>" + Methods.getAvaliableIps() + "</html>");

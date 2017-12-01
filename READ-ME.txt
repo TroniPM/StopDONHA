@@ -1,0 +1,18 @@
+pt-br:
+Chave pública do servidor deve ter esse nome: "public_server.stopdonha"
+
+Acesse o jogo pela primeira vez (ele irá criar a chave privada/publica), então copie o arquivo "public_this"
+para o cliente e então renomei-o para "public_server.stopdonha". Vale salientar que, caso já existam os arquivos
+"public_this.stopdonha" e "private_this.stopdonha", o jogo apenas irá carregar eles, e não irá sobrescrevê-los.
+
+Processo de troca de chaves: Inicialmente o Cliente cria 4 chaves, uma de autenticação e uma encriptação para o 
+cliente (ele memso), e para o servidor, uma de autenticação e uma de encriptação. Avisa ao servidor que vai enviar as
+chaves e envia as quatro, uma de cada vez (porque o tamanho das chaves AES são grandes, e a criptografia assimétrica não
+consegue encriptar tudo junto. Logo, encripto/envio uma de cada vez. Após o servidor receber as quatro chaves, ele avisa
+ao cliente que recebeu, e então o cliente já pode enviar os seus dados para entrar na sala (utilizando suas chaves
+simétricas). A partir dai, TODA a comunicação é encriptada com chave simétrica, do servidor para o cliente (com as
+chaves criadas pelo cliente) e do cliente para o servidor (com as chaves criadas pelo cliente). Vale salientar que CADA
+cliente cria 4 chaves. Ou seja, existem 3 clientes A, B e C, cada um cria 4 chaves (totalizando 12), quando o servidor vai
+se comunicar com A, ele usa as chaves criadas por A, quando A vai se comunicar com o servidor, ele usa as chaves criadas
+por A (ele mesmo). Desta forma, mesmo que o servidor envie vários dados iguais aos clientes, eles só poderão ser
+decriptados pelo cliente específico dono daquela chave.

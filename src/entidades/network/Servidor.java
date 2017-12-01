@@ -410,13 +410,8 @@ public class Servidor {
                 ChaveSessao cs = new ChaveSessao(false);
                 PrivateKey pri = null;
                 try {
-                    pri = Methods.readPrivateKey("./private.der");
-                } catch (IOException ex) {
-                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (NoSuchAlgorithmException ex) {
-                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (InvalidKeySpecException ex) {
-                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+                    //pri = Methods.readPrivateKey("./private.der");
+                    pri = Session.security.chavePrivadaTHIS;
                 } catch (Exception ex) {
                     Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -470,13 +465,25 @@ public class Servidor {
                 //Mapeio o IP com a ChaveSessao
                 cs.ip = socket.getInetAddress().getHostAddress();
                 Session.addLog("\n" + cs.toString());
-                //Para manter referência de chaveSessao ao longo do programa
-                arrayChaveSessao.add(cs);
+
+                String response = null;
+                if (!cs.isValid()) {
+                    Session.addLog("Chave de sessão recebida pelo cliente é inválida. "
+                            + "Não vai salvar e avisará ao cliente que ele não pode participar.");
+                    response = "invalid";
+                } else {
+                    Session.addLog("Chave de sessão recebida pelo cliente é válida. "
+                            + "Notificando cliente para ele poder entrar na sala.");
+                    response = "valid";
+                    //Para manter referência de chaveSessao ao longo do programa
+                    arrayChaveSessao.add(cs);
+                }
+
                 //Avisar cliente q recebeu as 4 chaves
                 try {
                     Session.addLog("Avisando ao cliente que recebeu as 4 chaves.");
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                    out.writeObject("start".getBytes());
+                    out.writeObject(response.getBytes());
                     out.flush();
                 } catch (IOException ex) {
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);

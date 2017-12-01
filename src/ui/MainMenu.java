@@ -137,7 +137,7 @@ public class MainMenu extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        if (Session.security.getPublicKeyServerFromFile()) {
+        if (Session.security.chavePublicaSERVIDOR != null) {
             Session.gRunTime.currentNickname = JOptionPane.showInputDialog(this, "Digite seu nickname:", Session.nickname);
             if (Session.gRunTime.currentNickname != null) {
                 Session.nickname = Session.gRunTime.currentNickname;

@@ -17,7 +17,10 @@ import entidades.network.sendible.User;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -34,15 +37,15 @@ import util.Session;
  */
 public class Security {
 
-    public static final String chave_this_public_path = "./key_this_pub.txt";
-    public static final String chave_this_private_path = "./key_this_pri.txt";
-    public static final String chave_server_public_path = "./public.der";
-    public static final String chave_server_private_path = "./private.der";
+    public static final String chave_this_public_path = "./public_this.stopdonha";
+    public static final String chave_this_private_path = "./private_this.stopdonha";
+    public static final String chave_server_public_path = "./public_server.stopdonha";
 
     private static final String param1 = "RSA";
 
     public PublicKey chavePublicaSERVIDOR = null;
-    public PrivateKey chavePrivadaSERVIDOR = null;
+    public PublicKey chavePublicaTHIS = null;
+    public PrivateKey chavePrivadaTHIS = null;
 
     public String TAG = null;
     public int TAG_NUMBER = 1;
@@ -142,43 +145,6 @@ public class Security {
         return out;
     }
 
-    public boolean getPublicKeyServerFromFile() {
-        if (Methods.fileExists(chave_server_public_path)) {
-            Session.addLog("Recuperando Chave Pública do servidor...");
-            try {
-                chavePublicaSERVIDOR = Methods.readPublicKey(chave_server_public_path);
-                Session.addLog("Chave Pública do servidor recuperada com sucesso.");
-                return true;
-            } catch (Exception ex) {
-                Session.addLog("Erro ao recuperar Chave Pública do servidor.");
-            }
-        } else {
-            Session.addLog("Chave Pública do servidor não existe...");
-        }
-
-        if (Methods.fileExists(chave_server_private_path)) {
-            Session.addLog("Recuperando Chave Privada do servidor...");
-            try {
-                chavePrivadaSERVIDOR = Methods.readPrivateKey(chave_server_private_path);
-                Session.addLog("Chave Privada do servidor recuperada com sucesso.");
-            } catch (Exception ex) {
-                Session.addLog("Erro ao recuperar Chave Privada do servidor.");
-            }
-        } else {
-            Session.addLog("Chave Privada do servidor não existe...");
-        }
-
-        return false;
-    }
-
-    public void init() throws UnknownHostException {
-        Session.addLog("Adicionando provider ao java.security.Security...");
-        java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-
-        TAG = Inet4Address.getLocalHost().getHostAddress();
-        TAG_NUMBER = 0;
-    }
-
     public static byte[] criptografaAssimetrica(byte[] texto, PublicKey chave) {
         byte[] cipherText = null;
 
@@ -211,50 +177,62 @@ public class Security {
         return dectyptedText;
     }
 
-    public static void main(String[] args) {
+    public void init() throws UnknownHostException {
+        Session.addLog("Adicionando provider ao java.security.Security...");
         java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-        PublicKey publicKey = null;
-        PrivateKey privateKey = null;
-        try {
-            publicKey = Methods.readPublicKey("public.der");
-            privateKey = Methods.readPrivateKey("private.der");
-        } catch (IOException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeySpecException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
-        //ChaveSessao cs = new ChaveSessao();
-        try {
+        TAG = Inet4Address.getLocalHost().getHostAddress();
+        TAG_NUMBER = 0;
 
-            User u = new User("nome_de_usuario", 100, "192.168.0.5");
-            byte[] convertToByteArray = SerializationUtils.serialize(u);
-
-            KeyGenerator keygenerator = KeyGenerator.getInstance("AES");
-            keygenerator.init(256, new SecureRandom());
-            SecretKey generateKey = keygenerator.generateKey();
-
-            KeyEncriptacaoCliente kec = new KeyEncriptacaoCliente(generateKey);
-            KeyEncriptacaoServidor kes = new KeyEncriptacaoServidor(generateKey);
-
-            byte[] p1 = SerializationUtils.serialize(kec);
-            System.out.println(p1.length);
-            //byte[] p1 = generateKey.getEncoded();
-            //byte[] p1 = u.convertToByteArray();
-            byte[] e1 = criptografaAssimetrica(p1, publicKey);
-            //byte[] e2 = _encrypt(CHAVE, chavePublica.getEncoded());
-            byte[] d1 = decriptografiaAssimetrica(e1, privateKey);
-            for (int i = 0; i < p1.length; i++) {
-                System.out.println(p1[i] + ":" + d1[i]);
+        Session.addLog("Criação de chaves pública/privada...");
+        if (Methods.fileExists(chave_this_public_path) && Methods.fileExists(chave_this_private_path)) {
+            Session.addLog("Chaves já existem. Recuperando chaves...");
+            try {
+                chavePublicaTHIS = (PublicKey) SerializationUtils.
+                        deserialize(Methods.readFileBytes(chave_this_public_path));
+                chavePrivadaTHIS = (PrivateKey) SerializationUtils.
+                        deserialize(Methods.readFileBytes(chave_this_private_path));
+                System.out.println(chavePublicaTHIS);
+                Session.addLog("Chaves foram recuperadas com sucesso...");
+            } catch (Exception ex) {
+                Session.addLog("Erro ao recuperar chaves. Irá criar novas chaves do zero...");
+                createKeys();
             }
-
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-
-        } catch (Exception ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+        } else {
+            Session.addLog("Chaves não existem. Criar novas chaves...");
+            createKeys();
         }
+
+        //Recuperando chave do servidor
+        Session.addLog("Tentando recuperar chave pública do servidor...");
+        if (Methods.fileExists(chave_server_public_path)) {
+            Session.addLog("Chave pública do servidor existe...");
+            try {
+                chavePublicaSERVIDOR = (PublicKey) SerializationUtils.
+                        deserialize(Methods.readFileBytes(chave_server_public_path));
+                System.out.println(chavePublicaSERVIDOR);
+                Session.addLog("Chave pública recuperada...");
+            } catch (Exception ex) {
+                Session.addLog("Erro ao recuperar chave do servidor. Não permitir acesso a rede.");
+            }
+        } else {
+            Session.addLog("Chave pública do servidor não existe. Não permitir acesso a rede.");
+        }
+    }
+
+    private void createKeys() {
+        KeyPairGenerator assimetrica = null;
+        try {
+            assimetrica = KeyPairGenerator.getInstance("RSA", "BC");
+            assimetrica.initialize(2048, new SecureRandom());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        KeyPair keyPair = assimetrica.generateKeyPair();
+        chavePublicaTHIS = keyPair.getPublic();
+        chavePrivadaTHIS = keyPair.getPrivate();
+
+        Methods.writeOnFile(chave_this_public_path, SerializationUtils.serialize(chavePublicaTHIS), false);
+        Methods.writeOnFile(chave_this_private_path, SerializationUtils.serialize(chavePrivadaTHIS), false);
     }
 }

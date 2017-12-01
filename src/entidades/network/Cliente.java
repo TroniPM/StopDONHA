@@ -67,7 +67,7 @@ public class Cliente {
         }
     }
 
-    public void startScheme() throws IOException {
+    public boolean startScheme() throws IOException {
         String a = "startScheme: Vai começar scheme em " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
 
@@ -78,13 +78,9 @@ public class Cliente {
 
         PublicKey pub = null;
         try {
-            pub = Methods.readPublicKey("./public.der");
-        } catch (IOException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeySpecException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+            //pub = Methods.readPublicKey("./public.der");
+            pub = Session.security.chavePublicaSERVIDOR;
+            System.out.println(pub);
         } catch (Exception ex) {
             Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -134,17 +130,26 @@ public class Cliente {
         while (true) {
             try {
                 byte[] msgBytes = (byte[]) new ObjectInputStream(socket.getInputStream()).readObject();
-                if (new String(msgBytes).equals("start")) {
+                if (new String(msgBytes).equals("valid")) {
                     Session.addLog("Confirmação recebida. Prosseguir...");
-                    break;
+                    out.close();
+                    socket.close();
+
+                    return true;
+                } else if (new String(msgBytes).equals("invalid")) {
+                    Session.addLog("Servidor respondeu: chave de sessão enviada "
+                            + "é inválida. Provavelmente a chave pública do "
+                            + "servidor dentro do cliente não dá match com a "
+                            + "chave privada dentro do servidor. NÃO vai prosseguir...");
+                    out.close();
+                    socket.close();
+
+                    return false;
                 }
             } catch (ClassNotFoundException ex) {
                 //Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
-        out.close();
-        socket.close();
     }
 
     public void communicateWaitingRoomEnter() throws IOException {

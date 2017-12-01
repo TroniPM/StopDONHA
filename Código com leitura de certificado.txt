@@ -1,10 +1,5 @@
 $ openssl genrsa -out keypair.pem 2048
-Generating RSA private key, 2048 bit long modulus
-............+++
-................................+++
-e is 65537 (0x10001)
 $ openssl rsa -in keypair.pem -outform DER -pubout -out public.der
-writing RSA key
 $ openssl pkcs8 -topk8 -nocrypt -in keypair.pem -outform DER -out private.der
 
 Now that you have the DER files, you can read them in Java and use KeySpec and KeyFactory to create PublicKey and PrivateKey objects.

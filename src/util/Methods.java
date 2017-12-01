@@ -39,7 +39,7 @@ public class Methods {
      * @param content
      * @param append
      */
-    public static void writeOnFile(String path, String content, boolean append) {
+    public static void writeOnFile(String path, byte[] content, boolean append) {
         FileOutputStream fop = null;
         File file;
         try {
@@ -50,8 +50,8 @@ public class Methods {
                 file.createNewFile();
             }
             //pega o content em bytes
-            byte[] contentInBytes = content.getBytes();
-            fop.write(contentInBytes);
+            //byte[] contentInBytes = content.getBytes();
+            fop.write(content);
             //flush serve para garantir o envio do último lote de bytes
             fop.flush();
             fop.close();
@@ -209,12 +209,12 @@ public class Methods {
         return ret;
     }
 
-    private static byte[] readFileBytes(String filename) throws IOException {
+    public static byte[] readFileBytes(String filename) throws IOException {
         Path path = Paths.get(filename);
         return Files.readAllBytes(path);
     }
 
-    public static PublicKey readPublicKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    /*public static PublicKey readPublicKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(readFileBytes(filename));
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePublic(publicSpec);
@@ -224,5 +224,5 @@ public class Methods {
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(readFileBytes(filename));
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePrivate(keySpec);
-    }
+    }*/
 }
