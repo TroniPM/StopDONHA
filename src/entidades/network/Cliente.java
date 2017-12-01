@@ -11,15 +11,9 @@ import static entidades.network.Servidor.PORT_CLIENT;
 import static entidades.network.Servidor.PORT_SERVER;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.EndRoundArray;
-import entidades.network.sendible.StepOne;
-import entidades.network.sendible.StepTwo;
 import entidades.network.sendible.User;
 import entidades.network.sendible.UserArray;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
@@ -33,7 +27,6 @@ import security.KeyAutenticacaoCliente;
 import security.KeyAutenticacaoServidor;
 import security.KeyEncriptacaoCliente;
 import security.KeyEncriptacaoServidor;
-import security.Security;
 import util.Methods;
 import util.Session;
 
@@ -101,10 +94,10 @@ public class Cliente {
         //Session.security.KEY = cs;
         ChaveSessao cs = Session.security.KEY;
         //Encapsulando chaves para envio
-        KeyAutenticacaoServidor kas = new KeyAutenticacaoServidor(cs.getAUTENTICACAO_SERVIDOR());
-        KeyAutenticacaoCliente kac = new KeyAutenticacaoCliente(cs.getAUTENTICACAO_CLIENTE());
-        KeyEncriptacaoServidor kes = new KeyEncriptacaoServidor(cs.getENCRIPTACAO_SERVIDOR());
-        KeyEncriptacaoCliente kec = new KeyEncriptacaoCliente(cs.getENCRIPTACAO_CLIENTE());
+        KeyAutenticacaoServidor kas = new KeyAutenticacaoServidor(cs.AUTENTICACAO_SERVIDOR);
+        KeyAutenticacaoCliente kac = new KeyAutenticacaoCliente(cs.AUTENTICACAO_CLIENTE);
+        KeyEncriptacaoServidor kes = new KeyEncriptacaoServidor(cs.ENCRIPTACAO_SERVIDOR);
+        KeyEncriptacaoCliente kec = new KeyEncriptacaoCliente(cs.ENCRIPTACAO_CLIENTE);
 
         //Aviso ao servidor q vou iniciar
         out.writeObject("start".getBytes());
@@ -112,25 +105,25 @@ public class Cliente {
         //System.out.println("Enviou Start");
         //Começo do envio de chaves
         byte[] b1 = SerializationUtils.serialize(kas);
-        byte[] criptografa1 = security.Security.criptografa(b1, pub);
+        byte[] criptografa1 = security.Security.criptografaAssimetrica(b1, pub);
         out = new ObjectOutputStream(socket.getOutputStream());
         out.writeObject(criptografa1);
         out.flush();
         Session.addLog("Enviou chave1");
         byte[] b2 = SerializationUtils.serialize(kac);
-        byte[] criptografa2 = security.Security.criptografa(b2, pub);
+        byte[] criptografa2 = security.Security.criptografaAssimetrica(b2, pub);
         out = new ObjectOutputStream(socket.getOutputStream());
         out.writeObject(criptografa2);
         out.flush();
         Session.addLog("Enviou chave2");
         byte[] b3 = SerializationUtils.serialize(kes);
-        byte[] criptografa3 = security.Security.criptografa(b3, pub);
+        byte[] criptografa3 = security.Security.criptografaAssimetrica(b3, pub);
         out = new ObjectOutputStream(socket.getOutputStream());
         out.writeObject(criptografa3);
         out.flush();
         Session.addLog("Enviou chave3");
         byte[] b4 = SerializationUtils.serialize(kec);
-        byte[] criptografa4 = security.Security.criptografa(b4, pub);
+        byte[] criptografa4 = security.Security.criptografaAssimetrica(b4, pub);
         out = new ObjectOutputStream(socket.getOutputStream());
         out.writeObject(criptografa4);
         out.flush();
@@ -169,27 +162,9 @@ public class Cliente {
         /*SEGURANÇA*/
         byte[] data = generatePackage(SerializationUtils.serialize(user),
                 Session.security.KEY.AUTENTICACAO_CLIENTE,
-                Session.security.KEY.ENCRIPTACAO_CLIENTE, "user");
+                Session.security.KEY.ENCRIPTACAO_CLIENTE);
         /*SEGURANÇA*/
 
- /*// Gera encriptação
-        byte[] encryp = Session.security.brincar(SerializationUtils.serialize(user),
-                Session.security.KEY.ENCRIPTACAO_CLIENTE);
-        // Gera Autenticação
-        byte[] auth = null;
-        try {
-            auth = Session.security.autenticacao(encryp, Session.security.KEY.AUTENTICACAO_CLIENTE);
-        } catch (DataLengthException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidCipherTextException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        // Cria um Package para enviar
-        security.Package p = new security.Package(auth, encryp, Session.security.TAG,
-                Session.security.TAG_NUMBER++, "user");
-        // Converte o Package em um array de bytes
-        byte[] data = SerializationUtils.serialize(p);*/
-        // Enviando dados
         out.writeObject(data);
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
@@ -221,7 +196,7 @@ public class Cliente {
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(obj),
                     Session.security.KEY.AUTENTICACAO_CLIENTE,
-                    Session.security.KEY.ENCRIPTACAO_CLIENTE, "gameruntime");
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -247,8 +222,8 @@ public class Cliente {
      * @return
      */
     public byte[] generatePackage(byte[] data, SecretKey autenticacao,
-            SecretKey encriptacao, String tag) {
-        byte[] encryp = Session.security.brincar(data, encriptacao);
+            SecretKey encriptacao) {
+        byte[] encryp = Session.security.criptografaSimetrica(data, encriptacao);
         // Gera Autenticação
         byte[] auth = null;
         try {
@@ -260,7 +235,7 @@ public class Cliente {
         }
         // Cria um Package para enviar
         security.Package p = new security.Package(auth, encryp, Session.security.TAG,
-                Session.security.TAG_NUMBER++, tag);
+                Session.security.TAG_NUMBER++);
         // Converte o Package em um array de bytes
         byte[] d = SerializationUtils.serialize(p);
 
@@ -286,7 +261,7 @@ public class Cliente {
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(obj),
                     Session.security.KEY.AUTENTICACAO_CLIENTE,
-                    Session.security.KEY.ENCRIPTACAO_CLIENTE, "endround");
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -321,7 +296,7 @@ public class Cliente {
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(g),
                     Session.security.KEY.AUTENTICACAO_CLIENTE,
-                    Session.security.KEY.ENCRIPTACAO_CLIENTE, "userarray");
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -361,8 +336,7 @@ public class Cliente {
 
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(obj),
-                    Session.security.KEY.AUTENTICACAO_CLIENTE,
-                    Session.security.KEY.ENCRIPTACAO_CLIENTE, "gameruntime");
+                    autenticacao, encriptar);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -406,7 +380,7 @@ public class Cliente {
 
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(g),
-                    autenticacao, encriptar, "endroundarray");
+                    autenticacao, encriptar);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -447,7 +421,7 @@ public class Cliente {
             UserArray g = new UserArray(obj);
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(g),
-                    autenticacao, encriptar, "userarray");
+                    autenticacao, encriptar);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -458,34 +432,6 @@ public class Cliente {
             out.close();
         } catch (Exception se) {
             se.printStackTrace();
-        }
-    }
-
-    public void deletar_isso_daqui(String ip) {
-        try {
-            String a = "sv_communicateStepOne: Começando comunicação com " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-            //Não deixo enviar para o mesmo ip da máquina servidor.
-            if (ip.equals(Session.masterIP)) {
-                return;
-            }
-            Socket socket = new Socket(ip, PORT_CLIENT);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            a = "Conectado a " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-
-            String g = Session.security.passo1.convertToString();
-
-            out.writeObject(g.getBytes());
-
-            a = "Enviado StepOne [OBJECT] para" + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-
-            out.close();
-        } catch (SocketException se) {
-            se.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

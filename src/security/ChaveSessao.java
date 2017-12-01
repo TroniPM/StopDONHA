@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import org.bouncycastle.crypto.params.KeyParameter;
 
 public class ChaveSessao implements Serializable {
 
@@ -28,8 +27,10 @@ public class ChaveSessao implements Serializable {
 
     @Override
     public String toString() {
-        return ENCRIPTACAO_CLIENTE + "\n" + ENCRIPTACAO_SERVIDOR + "\n"
-                + AUTENTICACAO_SERVIDOR + "\n" + AUTENTICACAO_CLIENTE;
+        return "ENCRIPTACAO_CLIENTE: " + ENCRIPTACAO_CLIENTE
+                + "\nENCRIPTACAO_SERVIDOR: " + ENCRIPTACAO_SERVIDOR
+                + "\nAUTENTICACAO_SERVIDOR: " + AUTENTICACAO_SERVIDOR
+                + "\nAUTENTICACAO_CLIENTE" + AUTENTICACAO_CLIENTE;
     }
 
     public ChaveSessao(boolean t) {
@@ -55,21 +56,4 @@ public class ChaveSessao implements Serializable {
             }
         }
     }
-
-    public SecretKey getENCRIPTACAO_CLIENTE() {
-        return ENCRIPTACAO_CLIENTE;
-    }
-
-    public SecretKey getENCRIPTACAO_SERVIDOR() {
-        return ENCRIPTACAO_SERVIDOR;
-    }
-
-    public SecretKey getAUTENTICACAO_SERVIDOR() {
-        return AUTENTICACAO_SERVIDOR;
-    }
-
-    public SecretKey getAUTENTICACAO_CLIENTE() {
-        return AUTENTICACAO_CLIENTE;
-    }
-
 }

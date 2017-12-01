@@ -45,7 +45,7 @@
             </Property>
             <Property name="lineWrap" type="boolean" value="true"/>
             <Property name="rows" type="int" value="5"/>
-            <Property name="text" type="java.lang.String" value="Este projeto foi desenvolvido para a disciplina de Redes de Computadores, com o intuito de passar.&#xa;&#xa;Desenvolvido por:&#xa;Ana Raquel&#xa;Paulo Mateus&#xa;&#xa;Dezembro/2015&#xa;"/>
+            <Property name="text" type="java.lang.String" value="Este projeto foi desenvolvido inicialmente para a disciplina de Redes de Computadores, com o intuito de passar.&#xa;&#xa;Desenvolvido por (Dezembro/2015):&#xa;Ana Raquel&#xa;Paulo Mateus&#xa;-------------------------------------------&#xa;Criptografia sim&#xe9;trica/assim&#xe9;trica adicionada em todas as comunica&#xe7;&#xf5;es para a disciplina de Seguran&#xe7;a de Redes de Computadores, com o intuito de passar e receber esse bendito diploma. &#xa;&#xa;Desenvolvido por (Dezembro/2017):&#xa;Paulo Mateus"/>
             <Property name="wrapStyleWord" type="boolean" value="true"/>
             <Property name="selectedTextColor" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="0" green="0" red="0" type="rgb"/>

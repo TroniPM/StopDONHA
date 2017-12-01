@@ -40,7 +40,7 @@ public class About extends javax.swing.JPanel {
         jTextArea1.setFont(new java.awt.Font("Monospaced", 0, 14)); // NOI18N
         jTextArea1.setLineWrap(true);
         jTextArea1.setRows(5);
-        jTextArea1.setText("Este projeto foi desenvolvido para a disciplina de Redes de Computadores, com o intuito de passar.\n\nDesenvolvido por:\nAna Raquel\nPaulo Mateus\n\nDezembro/2015\n");
+        jTextArea1.setText("Este projeto foi desenvolvido inicialmente para a disciplina de Redes de Computadores, com o intuito de passar.\n\nDesenvolvido por (Dezembro/2015):\nAna Raquel\nPaulo Mateus\n-------------------------------------------\nCriptografia simétrica/assimétrica adicionada em todas as comunicações para a disciplina de Segurança de Redes de Computadores, com o intuito de passar e receber esse bendito diploma. \n\nDesenvolvido por (Dezembro/2017):\nPaulo Mateus");
         jTextArea1.setWrapStyleWord(true);
         jTextArea1.setSelectedTextColor(new java.awt.Color(0, 0, 0));
         jTextArea1.setSelectionColor(new java.awt.Color(255, 255, 255));

@@ -14,6 +14,11 @@ import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * https://stackoverflow.com/questions/660205/start-java-program-only-if-not-already-running/9098447
+ *
+ * @author Eric Leschinski
+ */
 public class JustOneLock {
 
     private FileLock lock;
@@ -22,7 +27,7 @@ public class JustOneLock {
     private String filename = "simplelock.tmp";
     private File file = null;
 
-    public boolean isAppActive() throws Exception {/*System.getProperty("user.home")*/
+    public boolean isAppActive() throws Exception {
         file = new File(pathname, filename);
         channel = new RandomAccessFile(file, "rw").getChannel();
 

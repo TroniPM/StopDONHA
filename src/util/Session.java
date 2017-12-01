@@ -28,15 +28,16 @@ public class Session {
     public static boolean canValidateRespostas = false;
     public static boolean canShowHighScores = false;
     public static boolean canShowMainMenuByConnectionError = false;
+    public final static boolean canPrint = true;
 
     public static String log = "";
-
     public static Security security = new Security();
 
     public static void addLog(String s) {
         String a = ((isServidor == true) ? "SERVER >> " : "CLIENT >> ") + s;
-        System.out.println(a);
-
+        if (canPrint) {
+            System.out.println(a);
+        }
         log += a + "\n\r";
     }
 

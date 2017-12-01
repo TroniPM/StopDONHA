@@ -45,6 +45,7 @@ public class JFramePrincipal extends javax.swing.JFrame {
      * Creates new form JFrame
      */
     public JFramePrincipal() {
+        //Travar para que não seja aberta outra instância do jogo
         trava = new JustOneLock();
         try {
             if (trava.isAppActive()) {
@@ -103,7 +104,7 @@ public class JFramePrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowClosing
 
     public void fechar() {
-        /*if (JOptionPane.showConfirmDialog(this,
+        if (JOptionPane.showConfirmDialog(this,
                 "Você tem certeza que deseja sair?", "Fechar?",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
@@ -116,8 +117,8 @@ public class JFramePrincipal extends javax.swing.JFrame {
 
             //trava.removeFile();
             System.exit(0);
-        }*/
-        System.exit(0);
+        }
+        //System.exit(0);
     }
 
     /**

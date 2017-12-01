@@ -11,7 +11,6 @@ import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.List;
 import util.Session;
 
 /**
@@ -100,33 +99,5 @@ public class GameRuntime implements Serializable {
 
             return (o1.pontuacao < o2.pontuacao) ? 1 : ((o1.pontuacao > o2.pontuacao) ? -1 : 0);
         }
-    }
-
-    public String convertToString() {
-        try {
-            String str;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(this);
-            byte[] objeto = baos.toByteArray();
-            str = Base64.encode(objeto);
-            oos.close();
-            return str;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static GameRuntime convertFromString(String str) throws ClassNotFoundException {
-        try {
-            ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decode(str));
-            ObjectInputStream ois = new ObjectInputStream(bais);
-            return (GameRuntime) ois.readObject();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-
     }
 }

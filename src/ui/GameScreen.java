@@ -92,17 +92,6 @@ public class GameScreen extends javax.swing.JPanel {
         for (int i = 0; i < Session.gRunTime.itens.size(); i++) {
             respostas.add("");
         }
-        /*for (int i = 0; i < Session.gRunTime.nicknamesNetwork.size(); i++) {
-         User user = new User();
-         user.nickname = Session.gRunTime.nicknamesNetwork.get(i);
-         try {
-         user.ip = Session.conexaoServidor.networkClientsSockets.get(i).getInetAddress().getHostAddress();
-         } catch (Exception e) {
-         user.ip = "";
-         }
-         //Session.gRunTime.pontuacaoDoRound.add(new User());
-         }*/
-
     }
 
     public int findPontuationByNickname() {

@@ -88,13 +88,11 @@ public class HighScore extends javax.swing.JPanel {
 
         @Override
         public int compare(User o1, User o2) {
-
             return (o1.pontuacao < o2.pontuacao) ? 1 : ((o1.pontuacao > o2.pontuacao) ? -1 : 0);
         }
     }
 
     public void recomecar() {
-
         if (Session.gRunTime.currentRound >= Session.gRunTime.qntdRounds) {
             Session.conexaoCliente.closeAndCleanAllData();
             Session.conexaoServidor.closeAndCleanAllData();
@@ -121,8 +119,8 @@ public class HighScore extends javax.swing.JPanel {
                     cs = in;
                 }
             }
-            System.out.println("ENVIANDO GAMERUNTIME");
-            System.out.println("#########################" + "\n" + cs);
+            //System.out.println("ENVIANDO GAMERUNTIME");
+            //System.out.println("#########################" + "\n" + cs);
 
             final String ip = ips[i];
             final SecretKey autenticacao = cs.AUTENTICACAO_SERVIDOR;

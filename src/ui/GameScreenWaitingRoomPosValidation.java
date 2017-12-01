@@ -75,8 +75,8 @@ public class GameScreenWaitingRoomPosValidation extends javax.swing.JPanel {
                     cs = in;
                 }
             }
-            System.out.println("ENVIANDO GAMERUNTIME");
-            System.out.println("#########################" + "\n" + cs);
+            //System.out.println("ENVIANDO GAMERUNTIME");
+            //System.out.println("#########################" + "\n" + cs);
 
             final String ip = ips[i];
             final SecretKey autenticacao = cs.AUTENTICACAO_SERVIDOR;

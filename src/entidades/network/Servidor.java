@@ -11,30 +11,22 @@ import java.util.logging.Logger;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.EndRoundArray;
 import entidades.network.sendible.RoundDataToValidate;
-import entidades.network.sendible.StepOne;
-import entidades.network.sendible.StepTwo;
 import entidades.network.sendible.User;
 import entidades.network.sendible.UserArray;
-import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
-import javax.crypto.BadPaddingException;
 import javax.crypto.SecretKey;
 import org.apache.commons.lang3.SerializationUtils;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.util.Arrays;
 import security.ChaveSessao;
 import security.KeyAutenticacaoCliente;
 import security.KeyAutenticacaoServidor;
 import security.KeyEncriptacaoCliente;
 import security.KeyEncriptacaoServidor;
-import security.Security;
 import util.Methods;
 import util.Session;
 
@@ -50,9 +42,7 @@ public class Servidor {
 
     public ArrayList<Socket> networkClientsSockets = new ArrayList<>();
     public ArrayList<User> arrayUsuariosComChaves = new ArrayList<>();
-    public ArrayList<StepTwo> arrayStepTwo = new ArrayList<>();
     private ArrayList<EchoThread> arrayAllThreads = new ArrayList<>();
-
     public ArrayList<ChaveSessao> arrayChaveSessao = new ArrayList<>();
 
     private String[] ipsNetwork = null;
@@ -320,32 +310,6 @@ public class Servidor {
 
     }
 
-    public static void main(String[] args) throws IOException {
-        Servidor s = new Servidor();
-        //s.test();
-        //s.ListeningStepOne();
-        s.ListeningWaitingRoom();
-    }
-
-    private void test() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                serverSocket = makeConnectionServer();
-                Session.addLog("Ouvindo TESTE");
-                while (true) {
-                    try {
-                        Socket socket = serverSocket.accept();
-                        EchoThread a = new EchoThread(socket);
-                        a.start();
-                    } catch (IOException e) {
-                        Session.addLog("TESTE() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
-                    }
-                }
-            }
-        }).start();
-    }
-
     public class EchoThread extends Thread {
 
         private Socket socket;
@@ -417,17 +381,6 @@ public class Servidor {
             Session.canStartGame = true;//Flag para thread q está ouvindo fazer action
         }
 
-        public void stepOneType(StepOne obj) {
-            Session.addLog("RECEIVED: stepOneType(): [OBJECT] recebido StepOne: " + obj);
-            Session.security.passo1 = obj;
-        }
-
-        public void stepTwoType(StepTwo obj) {
-            Session.addLog("RECEIVED: stepTwoType(): [OBJECT] recebido StepTwo: " + obj);
-            obj.IP = socket.getInetAddress().getHostAddress();
-            arrayStepTwo.add(obj);
-        }
-
         @Override
         public void run() {
             if (socket == null || socket.isClosed()) {
@@ -469,6 +422,7 @@ public class Servidor {
                 }
 
                 int qtd = 0;
+                //Espero receber todas as chaves.
                 while (true) {
                     if (socket == null || socket.isClosed()) {
                         return;
@@ -483,7 +437,7 @@ public class Servidor {
                     if (msgBytes != null) {
                         //Decriptando conteúdo com a chave privada do servidor
                         try {
-                            msgBytes = security.Security.decriptografia(msgBytes, pri);
+                            msgBytes = security.Security.decriptografiaAssimetrica(msgBytes, pri);
                         } catch (Exception e) {
                             msgBytes = null;
                         }
@@ -515,6 +469,7 @@ public class Servidor {
 
                 //Mapeio o IP com a ChaveSessao
                 cs.ip = socket.getInetAddress().getHostAddress();
+                Session.addLog("\n" + cs.toString());
                 //Para manter referência de chaveSessao ao longo do programa
                 arrayChaveSessao.add(cs);
                 //Avisar cliente q recebeu as 4 chaves
@@ -545,190 +500,29 @@ public class Servidor {
                  * FAZER COM QUE QUANDO FOR OBJETO GAMERUNTIME PEGUE A CHAVE DO
                  * SERVIDOR, E NÃO DO CLIENTE PARA DECRIPTAR
                  */
-                /*if (Methods.isIpFromServidor(socket.getInetAddress().getHostAddress())) {
+                //Caso seja conexão do cliente DENTRO do servidor
+                if (Methods.isIpFromServidor(socket.getInetAddress().getHostAddress())) {
                     Session.addLog("PACKAGE recebido foi do Cliente DENTRO servidor...");
-                    autenticacao = Session.security.passo2.KEY_ENCRIPTACAO;
-                    keyPublic = Session.security.passo2.KEY_PUBLICA;
-                    //keyPrivate = Session.security.passo2.KEY_PRIVATE;
+                    cs = Session.security.KEY;
+                    autenticacao = cs.AUTENTICACAO_CLIENTE;
+                    encriptacao = cs.ENCRIPTACAO_CLIENTE;
                 } else if (socket.getInetAddress().getHostAddress().equals(Session.masterIP)) {
                     //Caso conexão venha do servidor
                     Session.addLog("PACKAGE recebido foi do servidor...");
-                    keySessao = Session.security.passo1.KEY_ENCRIPTACAO;
-                    keyPublic = Session.security.chavePublicaSERVIDOR;
-                    //keyPrivate = Session.security.passo1.KEY_PRIVATE;
-                }*/
-                //Verificação se ChaveSessao para o correspondente IP existe
-                if (cs == null) {
-                    Session.addLog("ChaveSessao não encontrada. Dropando recepção dos dados");
-                    return;
-                }
-
-                //Primeiro verifico se dados são decriptáveis com keys do cliente
-                Session.addLog("Verificando scheme (autenticação/decriptação) com chaves do CLIENTE.");
-                autenticacao = cs.AUTENTICACAO_CLIENTE;
-                encriptacao = cs.ENCRIPTACAO_CLIENTE;
-                int obj = getObject(msgBytes, autenticacao, encriptacao);
-                if (obj == 1 || obj == 0) {
-                    return;
-                } else if (obj != 2) {
-                    //verifico se dados se decriptáveis com keys do servidor
-                    Session.addLog("Verificando scheme (autenticação/decriptação) com chaves do SERVIDOR.");
+                    cs = Session.security.KEY;
                     autenticacao = cs.AUTENTICACAO_SERVIDOR;
                     encriptacao = cs.ENCRIPTACAO_SERVIDOR;
-                    obj = getObject(msgBytes, autenticacao, encriptacao);
-
-                }
-
-                //Verificação se dado recebido é um OBJETO PACKAGE
-                /*Object deserialize = SerializationUtils.deserialize(msgBytes);
-                if (deserialize.getClass().getName().equals("security.Package")) {
-                    security.Package p = (security.Package) deserialize;
-
-                    //Verificar autenticação
-                    byte[] auth = null;
-                    try {
-                        auth = Session.security.autenticacao(p.data, cs.AUTENTICACAO_CLIENTE);
-                    } catch (DataLengthException ex) {
-                        Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (InvalidCipherTextException ex) {
-                        Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-
-                    //dropo recepção de dados por autenticação não estar correta
-                    if (!Arrays.areEqual(p.auth, auth)) {
-                        Session.addLog("Assinatura diferente. Ignorando dados.");
-                        return;
-                    } else {
-                        Session.addLog("Assinatura COMBINA. Receptando dados.");
-                    }
-                    //Desencriptar
-                    byte[] dec;
-                    try {
-                        Session.addLog("Decriptando dados recebidos com ChaveSessao.");
-                        dec = Session.security.desbrincar(p.data, cs.ENCRIPTACAO_CLIENTE);
-                        deserialize = SerializationUtils.deserialize(dec);
-
-                        //System.out.println(deserialize.getClass().getName());
-                        Session.addLog("Fazendo casting de dado recebido.");
-                        //do stuff here
-                        if (deserialize.getClass().getName().equals("entidades.network.sendible.User")) {
-                            userType((User) deserialize);
-                        } else if (deserialize.getClass().getName().equals("entidades.GameRuntime")) {
-                            gameRunType((GameRuntime) deserialize);
-                        }
-                    } catch (Exception ex) {
-                        Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else {
-                    Session.addLog("Dado recebido desconhecido.");
-                }*/
-                if (1 == 1) {
+                } else if (cs == null) {
+                    Session.addLog("ChaveSessao não encontrada (cliente desconhecido). Dropando recepção dos dados");
                     return;
+                } else {
+                    Session.addLog("PACKAGE recebido foi de um cliente normal...");
+                    autenticacao = cs.AUTENTICACAO_CLIENTE;
+                    encriptacao = cs.ENCRIPTACAO_CLIENTE;
                 }
 
-                try {
-                    //#2 - ENCONTRAR CHAVE DE SESSÃO DO CLIENTE ATUAL.
-                    SecretKey keySessao = null;
-                    PublicKey keyPublic = null;
-                    //PrivateKey keyPrivate = null;
+                int obj = getObject(msgBytes, autenticacao, encriptacao);
 
-                    //Caso seja uma conexão cliente normal
-                    for (StepTwo inStepTwo : arrayStepTwo) {
-                        if (inStepTwo.IP.equals(socket.getInetAddress().getHostAddress())) {
-                            Session.addLog("PACKAGE recebido foi do Cliente...");
-                            keySessao = inStepTwo.KEY_ENCRIPTACAO;
-                            keyPublic = inStepTwo.KEY_PUBLICA;
-                            //keyPrivate = inStepTwo.KEY_PRIVATE;
-
-                            break;
-                        }
-                    }
-                    //Caso seja conexão do cliente DENTRO do servidor
-                    if (Methods.isIpFromServidor(socket.getInetAddress().getHostAddress())) {
-                        Session.addLog("PACKAGE recebido foi do Cliente DENTRO servidor...");
-                        keySessao = Session.security.passo2.KEY_ENCRIPTACAO;
-                        keyPublic = Session.security.passo2.KEY_PUBLICA;
-                        //keyPrivate = Session.security.passo2.KEY_PRIVATE;
-                    } else if (socket.getInetAddress().getHostAddress().equals(Session.masterIP)) {
-                        //Caso conexão venha do servidor
-                        Session.addLog("PACKAGE recebido foi do servidor...");
-                        keySessao = Session.security.passo1.KEY_ENCRIPTACAO;
-                        keyPublic = Session.security.chavePublicaSERVIDOR;
-                        //keyPrivate = Session.security.passo1.KEY_PRIVATE;
-                    }
-
-                    /*try {
-                        //Cliente recebendo chaves do servidor e entrando na sala.
-                        stepOneType(StepOne.convertFromString(msg));
-                        Session.conexaoCliente.communicateWaitingRoom();
-                        return;
-                    } catch (Exception ex) {
-                    }*/
-                    try {
-                        //Servidor recebendo chaves e comunicando suas
-                        stepTwoType(StepTwo.convertFromString(msg));
-                        Session.conexaoCliente.deletar_isso_daqui(socket.getInetAddress().getHostAddress());
-                        return;
-                    } catch (Exception ex) {
-                    }
-
-                    if (keySessao == null) {
-                        Session.addLog("Não foi possível encontrar uma chave de decriptação.");
-                        return;
-                    }
-
-                    //#3 - PRINCIPAL
-                    try {
-                        byte[] data = Session.security.decriptografaSimetrica(msgBytes, keySessao);
-
-                        security.Package p = security.Package.convertFromByteArray(data);
-
-                        if (Session.security.verifySignature(new String(p.data), p.auth, keyPublic)) {
-                            Session.addLog("PACKAGE foi assinado corretamente.");
-                        } else {
-                            Session.addLog("PACKAGE não foi assinado corretamente. Descartando...");
-                            return;
-                        }
-
-                        if (p.objeto.equals("user")) {
-                            try {
-                                userType(User.convertFromString(new String(p.data)));
-                                return;
-                            } catch (Exception ex) {
-                            }
-                        } else if (p.objeto.equals("endround")) {
-                            try {
-                                endRoundType(EndRound.convertFromString(new String(p.data)));
-                                return;
-                            } catch (Exception ex) {
-                            }
-                        } else if (p.objeto.equals("userarray")) {
-                            try {
-                                arrayListUser(UserArray.convertFromStringArray(new String(p.data)).array);
-                                return;
-                            } catch (Exception ex) {
-                            }
-                        } else if (p.objeto.equals("gameruntime")) {
-                            try {
-                                gameRunType(GameRuntime.convertFromString(new String(p.data)));
-                                return;
-                            } catch (Exception ex) {
-                            }
-                        } else if (p.objeto.equals("endroundarray")) {
-                            try {
-                                arrayListEndRound(EndRoundArray.convertFromStringArray(new String(p.data)).array);
-                                return;
-                            } catch (Exception ex) {
-                            }
-                        }
-                        //VERIFICAR SE MENSAGEM JÁ FOI ENVIADA
-                    } catch (Exception ex) {
-                        //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } catch (Exception ex) {
-                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                    Session.canShowMainMenuByConnectionError = true;
-                }
             }
         }
 
@@ -756,7 +550,7 @@ public class Servidor {
                 byte[] dec;
                 try {
                     Session.addLog("Decriptando dados recebidos com ChaveSessao.");
-                    dec = Session.security.desbrincar(p.data, encriptacao);
+                    dec = Session.security.decriptografiaSimetrica(p.data, encriptacao);
                     deserialize = SerializationUtils.deserialize(dec);
 
                     //System.out.println(deserialize.getClass().getName());

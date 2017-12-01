@@ -111,7 +111,7 @@ public class WaitingRoom extends javax.swing.JPanel {
 
         if (!isMaster) {
             Session.isServidor = false;
-            this.jLabel3.setText(Methods.getAvaliableIps());
+            this.jLabel3.setText(Session.masterIP);
             //this.jLabel1.setText("Sala de Espera em " + Session.masterIP + ". Aguardando o início do jogo...");
             jScrollPane1.setEnabled(false);
             jScrollPane1.setVisible(false);
@@ -122,34 +122,39 @@ public class WaitingRoom extends javax.swing.JPanel {
 
             try {
                 /**
-                 * Processo de troca de chaves: 1*- Inicialmente o Cliente envia
-                 * sua chave de sessão/publica para o servidor. 2*- Quando o
-                 * servidor recebe essas chaves, envia as suas chave de
-                 * sessão/pública para o determinado ip. 3*- O cliente irá
-                 * receber essas chaves. 4*- Quando o cliente receber essas
-                 * chaves, irá entrar na sala, enviando os dados necessário.
-                 * APÓS O 3*, TODOS OS DADOS ENVIADOS SÃO CRITOGRAFADOS. Ao
-                 * Cliente enviar para o servidor alguma informação, é
-                 * criptografado com sua própria chave de sessão (o servidor ao
-                 * receber esta informação, usará a chave de sessão (1*) para
-                 * desencriptar os dados e a chave pública para verificar a
-                 * assinatura e só então utilizará os dados). De igual forma, ao
-                 * receber dados do servidor, o cliente desencriptará os dados
-                 * (2*) com a chave de sessão do servidor e verificar a
-                 * assinatura com a chave pública do servidor, para então, se
-                 * tudo ok, utilizar os dados.
+                 * Processo de troca de chaves: 1*- Inicialmente o Cliente cria
+                 * 4 chaves, uma de autenticação e uma encriptação para o
+                 * cliente (ele memso), e para o servidor, uma de autenticação e
+                 * uma de encriptação. Avisa ao servidor que vai enviar as
+                 * chaves e envia as quatro, uma de cada vez (porque o tamanho
+                 * das chaves AES são grandes, e a criptografia assimétrica não
+                 * consegue encriptar tudo junto. Logo, encripto/envio uma de
+                 * cada vez. Após o servidor receber as quatro chaves, ele avisa
+                 * ao cliente que recebeu, e então o cliente já pode enviar os
+                 * seus dados para entrar na sala (utilizando suas chaves
+                 * simétricas). A partir dai, TODA a comunicação é encriptada
+                 * com chave simétrica, do servidor para o cliente (com as
+                 * chaves criadas pelo cliente) e do cliente para o servidor
+                 * (com as chaves criadas pelo cliente). Vale salientar que CADA
+                 * cliente cria 4 chaves. Ou seja, existem 3 clientes A, B e C,
+                 * cada um cria 4 chaves (totalizando 12), quando o servidor vai
+                 * se comunicar com A, ele usa as chaves criadas por A, quando A
+                 * vai se comunicar com o servidor, ele usa as chaves criadas
+                 * por A (ele mesmo). Desta forma, mesmo que o servidor envie
+                 * vários dados iguais aos clientes, eles só poderão ser
+                 * decriptados pelo cliente específico dono daquela chave.
                  *
                  */
 
-                //Inicialmente envio para o servidor a chave de sessão e pública.
-                //Session.conexaoCliente.communicateStepTwo();
-                //Recebo chave publica e de sessão do servidor  dentro faço o envio da classe user
-                //Session.conexaoServidor.ListeningStepOne();
-                //Espero o servidor iniciar o jogo.
+                //Criando chaves
                 Session.security.KEY = new ChaveSessao(true);
+                //Enviando para o servidor as 4 chaves e esperando resposta de recebimento
                 Session.conexaoCliente.startScheme();
+                //Resposta de envio recebida e enviando dados para entrar na sala.
                 Session.conexaoCliente.communicateWaitingRoomEnter();
+                //Socket esperando gatilho ser disparado no clienteMAIN
                 Session.conexaoServidor.ListeningStartGame();
+                //thread que verifica se gatilho foi disparado
                 canStartGameThreadCheck();
             } catch (Exception ex) {
                 jLabel1.setText("Erro: " + ex.getLocalizedMessage());
@@ -162,15 +167,14 @@ public class WaitingRoom extends javax.swing.JPanel {
             try {
                 Session.masterIP = Inet4Address.getLocalHost().getHostAddress();
 
+                //Socket aberto esperando as conexões dos clientes
                 Session.conexaoServidor.ListeningWaitingRoom();
                 try {
-                    //Crio a chave de sessão
+                    //Crio a chave de sessão pra ele mesmo
                     Session.security.KEY = new ChaveSessao(true);
+                    //Envio para o servidor (ele mesmo) suas chaves e aguardo resposta
                     Session.conexaoCliente.startScheme();
-                    /**
-                     *
-                     */
-                    //Session.conexaoCliente.communicateWaitingRoom();
+                    //Resposta recebida, envio os dados para entrada na sala (encriptados)
                     Session.conexaoCliente.communicateWaitingRoomEnter();
 
                 } catch (IOException ex) {
@@ -311,8 +315,8 @@ public class WaitingRoom extends javax.swing.JPanel {
                     cs = in;
                 }
             }
-            System.out.println("ENVIANDO GAMERUNTIME");
-            System.out.println("#########################" + "\n" + cs);
+            //System.out.println("ENVIANDO GAMERUNTIME");
+            //System.out.println("#########################" + "\n" + cs);
 
             final String ip = ips[i];
             final SecretKey autenticacao = cs.AUTENTICACAO_SERVIDOR;
@@ -352,7 +356,7 @@ public class WaitingRoom extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void pingar() {
-        System.out.println("PING()");
+        //System.out.println("PING()");
         if (Session.conexaoServidor.networkClientsSockets.size() == Session.gRunTime.nicknamesNetwork.size()) {
             for (int i = 0; i < Session.conexaoServidor.networkClientsSockets.size(); i++) {
                 Socket aux = Session.conexaoServidor.networkClientsSockets.get(i);

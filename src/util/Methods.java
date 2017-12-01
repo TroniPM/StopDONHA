@@ -2,7 +2,6 @@ package util;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import entidades.network.Servidor;
-import entidades.network.sendible.EndRound;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

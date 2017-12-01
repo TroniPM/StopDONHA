@@ -1,16 +1,10 @@
 package entidades.network;
 
-import static entidades.GameRuntime.PONTO_BONIFICACAO_POR_VELOCIDADE;
 import static entidades.GameRuntime.PONTO_POR_ACERTO;
 import java.util.ArrayList;
 import entidades.network.sendible.EndRound;
 import entidades.network.sendible.User;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import util.Session;
 
 /**
@@ -41,20 +35,6 @@ public class DataNetworkManager {
                 }
             }
 
-            //System.out.println("\n\n####################");
-            //System.out.println("CALCULANDO PONTUAÇÃO");
-            //System.out.println("Usuário: " + auxUser.nickname);
-            //System.out.println("Ip: " + auxUser.ip);
-            //System.out.println("Pontuação: " + pontos);
-            //System.out.println("####################");
-
-            /*Faço esse if para o caso de usuário não inserir nada. Ele ganharia pontos
-             só pelo fato de ter enviado primeiro. Então se ele não pontuou nad ano round, 
-             não ganha a pontuação extra.*/
-            //TODO
-            /*if (pontos != 0) {
-             pontos += PONTO_BONIFICACAO_POR_VELOCIDADE * (arrayAux.size() - i);
-             }*/
             auxUser.pontuacao = pontos;
 
             user.add(auxUser);
