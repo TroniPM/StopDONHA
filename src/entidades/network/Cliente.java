@@ -166,8 +166,13 @@ public class Cliente {
         User user = new User();
         user.nickname = Session.nickname;
         //user.ip = Session.security.passo2.IP;
+        /*SEGURANÇA*/
+        byte[] data = generatePackage(SerializationUtils.serialize(user),
+                Session.security.KEY.AUTENTICACAO_CLIENTE,
+                Session.security.KEY.ENCRIPTACAO_CLIENTE, "user");
+        /*SEGURANÇA*/
 
-        // Gera encriptação
+ /*// Gera encriptação
         byte[] encryp = Session.security.brincar(SerializationUtils.serialize(user),
                 Session.security.KEY.ENCRIPTACAO_CLIENTE);
         // Gera Autenticação
@@ -183,7 +188,7 @@ public class Cliente {
         security.Package p = new security.Package(auth, encryp, Session.security.TAG,
                 Session.security.TAG_NUMBER++, "user");
         // Converte o Package em um array de bytes
-        byte[] data = SerializationUtils.serialize(p);
+        byte[] data = SerializationUtils.serialize(p);*/
         // Enviando dados
         out.writeObject(data);
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
@@ -191,17 +196,18 @@ public class Cliente {
     }
 
     /**
-     * Só o servidor utiliza este método.
+     * Só o clienteMAIN utiliza este método. Ao clicar em iniciar jogo, na sala
+     * de espera.
      *
      * @param ip
      * @param obj
      * @param autenticacao
      * @param encriptar
      */
-    public void communicateStartRound(String ip, GameRuntime obj,
+    public void sv_communicateStartGame(String ip, GameRuntime obj,
             SecretKey autenticacao, SecretKey encriptar) {
         try {
-            String a = "communicateStartRound: Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            String a = "sv_communicateStartRound: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
             //Não deixo enviar para o mesmo ip da máquina servidor.
             if (ip.equals(Session.masterIP)) {
@@ -212,23 +218,12 @@ public class Cliente {
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            // Gera encriptação
-            byte[] encryp = Session.security.brincar(SerializationUtils.serialize(obj), encriptar);
-            // Gera Autenticação
-            byte[] auth = null;
-            try {
-                auth = Session.security.autenticacao(encryp, autenticacao);
-            } catch (DataLengthException ex) {
-                Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvalidCipherTextException ex) {
-                Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            // Cria um Package para enviar
-            security.Package p = new security.Package(auth, encryp, Session.security.TAG,
-                    Session.security.TAG_NUMBER++, "gameruntime");
-            // Converte o Package em um array de bytes
-            byte[] data = SerializationUtils.serialize(p);
-            // Enviando dados
+            /*SEGURANÇA*/
+            byte[] data = generatePackage(SerializationUtils.serialize(obj),
+                    Session.security.KEY.AUTENTICACAO_CLIENTE,
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE, "gameruntime");
+            /*SEGURANÇA*/
+
             out.writeObject(data);
 
             a = "Enviado GameRuntime [OBJECT] para" + ip + ":" + PORT_CLIENT;
@@ -242,9 +237,18 @@ public class Cliente {
         }
     }
 
-    public byte[] generatePackage(byte[] obj, SecretKey autenticacao,
+    /**
+     * Método para criação de Package para envio pela rede.
+     *
+     * @param data dados que serão enviados. NÃO deve estar encriptado.
+     * @param autenticacao chave para autenticação
+     * @param encriptacao chave para encriptação
+     * @param tag tag que será atribuído a classe Package para o casting
+     * @return
+     */
+    public byte[] generatePackage(byte[] data, SecretKey autenticacao,
             SecretKey encriptacao, String tag) {
-        byte[] encryp = Session.security.brincar(SerializationUtils.serialize(obj), encriptacao);
+        byte[] encryp = Session.security.brincar(data, encriptacao);
         // Gera Autenticação
         byte[] auth = null;
         try {
@@ -258,31 +262,20 @@ public class Cliente {
         security.Package p = new security.Package(auth, encryp, Session.security.TAG,
                 Session.security.TAG_NUMBER++, tag);
         // Converte o Package em um array de bytes
-        byte[] data = SerializationUtils.serialize(p);
+        byte[] d = SerializationUtils.serialize(p);
 
-        return data;
+        return d;
     }
 
-    public void communicateDummy() throws IOException {
-        String a = "communicateDummy: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
-        Session.addLog(a);
-
-        Socket socket = new Socket(Session.masterIP, PORT_SERVER);
-        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-
-        a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
-        Session.addLog(a);
-
-        out.writeObject("getkey".getBytes());
-
-        a = "Enviado DummyConnection para " + Session.masterIP + ":" + PORT_SERVER;
-        Session.addLog(a);
-
-        out.close();
-    }
-
-    public void communicateEndRoundToValidate(EndRound obj) {
-        String a = "communicateEndRoundToValidate: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
+    /**
+     * Utilizado quando um cliente (EXCETO O ALOCADO DENTRO DO SERVIDOR) acaba
+     * sua jogada e clica em finalizar. Essa classe contem suas respostas. Essa
+     * classe será enviada ao servidor.
+     *
+     * @param obj
+     */
+    public void communicateAnswersFromClient(EndRound obj) {
+        String a = "communicateAnswersFromClient: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
         try {
             Socket socket = new Socket(Session.masterIP, PORT_SERVER);
@@ -290,35 +283,32 @@ public class Cliente {
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            String g = obj.convertToString();
-
             /*SEGURANÇA*/
-            // Gera Assinatura
-            byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
-            // Cria um Package para enviar
-            security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG,
-                    Session.security.TAG_NUMBER++, "endround");
-            // Converte o Package em um array de bytes
-            byte[] data = p.convertToByteArray();
-            // Encriptar
-            byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
+            byte[] data = generatePackage(SerializationUtils.serialize(obj),
+                    Session.security.KEY.AUTENTICACAO_CLIENTE,
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE, "endround");
             /*SEGURANÇA*/
 
-            out.writeObject(msgCriptografada);
+            out.writeObject(data);
 
             a = "Enviado EndRound [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            out.close();
-        } catch (SocketException se) {
-            se.printStackTrace();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void communicateDataValidated(ArrayList<User> obj) {
-        String a = "communicateDataValidated: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
+    /**
+     * Utilizado quando um cliente (EXCETO O ALOCADO DENTRO DO SERVIDOR) acaba
+     * de validar todas as respostas e clica em finalizar. Essa classe contem a
+     * validação do usuário para todas as respostas enviadas por todos os
+     * clientes para o servidor.
+     *
+     * @param obj
+     */
+    public void communicateAswersValidatedFromClient(ArrayList<User> obj) {
+        String a = "communicateAswersValidatedFromClient: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
         try {
             Socket socket = new Socket(Session.masterIP, PORT_SERVER);
@@ -326,72 +316,39 @@ public class Cliente {
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
-            String g = new UserArray(obj).convertToString();
+            UserArray g = new UserArray(obj);
 
             /*SEGURANÇA*/
-            // Gera Assinatura
-            byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
-            // Cria um Package para enviar
-            security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG,
-                    Session.security.TAG_NUMBER++, "userarray");
-            // Converte o Package em um array de bytes
-            byte[] data = p.convertToByteArray();
-            // Encriptar
-            byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
+            byte[] data = generatePackage(SerializationUtils.serialize(g),
+                    Session.security.KEY.AUTENTICACAO_CLIENTE,
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE, "userarray");
             /*SEGURANÇA*/
 
-            out.writeObject(msgCriptografada);
+            out.writeObject(data);
 
             a = "Enviado ArrayList<User> [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
             out.close();
-        } catch (SocketException se) {
+        } catch (Exception se) {
             se.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
-    public void communicateStepTwo() {
+    /**
+     * Utilizado pelo clienteMAIN, após ver painel de highscores, ao clicar em
+     * começar próximo round. Enviará GameRuntime, classe que contém todas as
+     * pontuações, nicks e configurações da partida.
+     *
+     * @param ip
+     * @param obj
+     * @param autenticacao
+     * @param encriptar
+     */
+    public void sv_communicateStartRound(String ip, GameRuntime obj,
+            SecretKey autenticacao, SecretKey encriptar) {
         try {
-            String a = "communicateStepTwo: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
-            Session.addLog(a);
-
-            Socket socket = new Socket(Session.masterIP, PORT_SERVER);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
-            Session.addLog(a);
-
-            String g = Session.security.passo2.convertToString();
-
-            /*SEGURANÇA*/
-            // Gera Assinatura
-            //byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
-            // Cria um Package para enviar
-            //security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG, Session.security.TAG_NUMBER++, "steptwo");
-            // Converte o Package em um array de bytes
-            //byte[] data = p.convertToByteArray();
-            // Encriptar
-            //byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
-            /*SEGURANÇA*/
-            out.writeObject(g.getBytes());
-            //out.writeObject(msgCriptografada);
-
-            a = "Enviado StepTwo [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
-            Session.addLog(a);
-
-            out.close();
-        } catch (SocketException se) {
-            se.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sv_communicateStartGame(String ip, GameRuntime obj) {
-        try {
-            String a = "sv_communicateStartGame: Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            String a = "sv_communicateStartRound: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
             //Não deixo enviar para o mesmo ip da máquina servidor.
             if (ip.equals(Session.masterIP)) {
@@ -402,21 +359,13 @@ public class Cliente {
             a = "Conectado a " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
 
-            String g = obj.convertToString();
-
             /*SEGURANÇA*/
-            // Gera Assinatura
-            byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
-            // Cria um Package para enviar
-            security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG,
-                    Session.security.TAG_NUMBER++, "gameruntime");
-            // Converte o Package em um array de bytes
-            byte[] data = p.convertToByteArray();
-            // Encriptar
-            byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
+            byte[] data = generatePackage(SerializationUtils.serialize(obj),
+                    Session.security.KEY.AUTENTICACAO_CLIENTE,
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE, "gameruntime");
             /*SEGURANÇA*/
 
-            out.writeObject(msgCriptografada);
+            out.writeObject(data);
 
             a = "Enviado GameRuntime [OBJECT] para" + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
@@ -429,7 +378,90 @@ public class Cliente {
         }
     }
 
-    public void sv_communicateStepOne(String ip) {
+    /**
+     * Utilizado pelo clienteMAIN, após ver painel de highscores, ao clicar em
+     * começar próximo round. Enviará GameRuntime, classe que contém todas as
+     * pontuações, nicks e configurações da partida.
+     *
+     * @param ip
+     * @param obj
+     * @param autenticacao
+     * @param encriptar
+     */
+    public void sv_communicateStartValidation(String ip, ArrayList<EndRound> obj,
+            SecretKey autenticacao, SecretKey encriptar) {
+        try {
+            String a = "sv_communicateStartValidation: Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+            //Não deixo enviar para o mesmo ip da máquina servidor.
+            if (ip.equals(Session.masterIP)) {
+                return;
+            }
+            Socket socket = new Socket(ip, PORT_CLIENT);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            a = "Conectado a " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+
+            EndRoundArray g = new EndRoundArray(obj);
+
+            /*SEGURANÇA*/
+            byte[] data = generatePackage(SerializationUtils.serialize(g),
+                    autenticacao, encriptar, "endroundarray");
+            /*SEGURANÇA*/
+
+            out.writeObject(data);
+
+            a = "Enviado ArrayList<EndRound> [OBJECT] para " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+
+            out.close();
+        } catch (Exception se) {
+            se.printStackTrace();
+        }
+    }
+
+    /**
+     * Utilizado pelo clienteMAIN, após ver painel de highscores, ao clicar em
+     * começar próximo round. Enviará GameRuntime, classe que contém todas as
+     * pontuações, nicks e configurações da partida.
+     *
+     * @param ip
+     * @param obj
+     * @param autenticacao
+     * @param encriptar
+     */
+    public void sv_communicateScoresToClient(String ip, ArrayList<User> obj,
+            SecretKey autenticacao, SecretKey encriptar) {
+        try {
+            String a = "sv_communicateScoresToClient: Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+            //Não deixo enviar para o mesmo ip da máquina servidor.
+            if (ip.equals(Session.masterIP)) {
+                return;
+            }
+            Socket socket = new Socket(ip, PORT_CLIENT);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            a = "Conectado a " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+
+            UserArray g = new UserArray(obj);
+            /*SEGURANÇA*/
+            byte[] data = generatePackage(SerializationUtils.serialize(g),
+                    autenticacao, encriptar, "userarray");
+            /*SEGURANÇA*/
+
+            out.writeObject(data);
+
+            a = "Enviado ArrayList<User> [OBJECT] para " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+
+            out.close();
+        } catch (Exception se) {
+            se.printStackTrace();
+        }
+    }
+
+    public void deletar_isso_daqui(String ip) {
         try {
             String a = "sv_communicateStepOne: Começando comunicação com " + ip + ":" + PORT_CLIENT;
             Session.addLog(a);
@@ -444,17 +476,6 @@ public class Cliente {
 
             String g = Session.security.passo1.convertToString();
 
-            /*SEGURANÇA*/
-            // Gera Assinatura
-            //byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
-            // Cria um Package para enviar
-            //security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG, Session.security.TAG_NUMBER++, "stepone");
-            // Converte o Package em um array de bytes
-            //byte[] data = p.convertToByteArray();
-            // Encriptar
-            //byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
-            /*SEGURANÇA*/
-            //out.writeObject(msgCriptografada);
             out.writeObject(g.getBytes());
 
             a = "Enviado StepOne [OBJECT] para" + ip + ":" + PORT_CLIENT;
@@ -467,85 +488,4 @@ public class Cliente {
             e.printStackTrace();
         }
     }
-
-    public void sv_communicateStartValidation(String ip, ArrayList<EndRound> obj) {
-        try {
-            String a = "sv_communicateStartValidation: Começando comunicação com " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-            //Não deixo enviar para o mesmo ip da máquina servidor.
-            if (ip.equals(Session.masterIP)) {
-                return;
-            }
-            Socket socket = new Socket(ip, PORT_CLIENT);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            a = "Conectado a " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-
-            String g = new EndRoundArray(obj).convertToString();
-
-            /*SEGURANÇA*/
-            // Gera Assinatura
-            byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
-            // Cria um Package para enviar
-            security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG,
-                    Session.security.TAG_NUMBER++, "endroundarray");
-            // Converte o Package em um array de bytes
-            byte[] data = p.convertToByteArray();
-            // Encriptar
-            byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
-            /*SEGURANÇA*/
-
-            out.writeObject(msgCriptografada);
-
-            a = "Enviado ArrayList<EndRound> [OBJECT] para " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-
-            out.close();
-        } catch (SocketException se) {
-            se.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sv_communicateScores(String ip, ArrayList<User> obj) {
-        try {
-            String a = "sv_communicateScores: Começando comunicação com " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-            //Não deixo enviar para o mesmo ip da máquina servidor.
-            if (ip.equals(Session.masterIP)) {
-                return;
-            }
-            Socket socket = new Socket(ip, PORT_CLIENT);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            a = "Conectado a " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-
-            String g = new UserArray(obj).convertToString();
-
-            /*SEGURANÇA*/
-            // Gera Assinatura
-            byte[] signature = Session.security.generateSignature(g, Session.security.passo2.KEY_PRIVATE);
-            // Cria um Package para enviar
-            security.Package p = new security.Package(signature, g.getBytes(), Session.security.TAG,
-                    Session.security.TAG_NUMBER++, "userarray");
-            // Converte o Package em um array de bytes
-            byte[] data = p.convertToByteArray();
-            // Encriptar
-            byte[] msgCriptografada = Session.security.criptografaSimetrica(data);
-            /*SEGURANÇA*/
-
-            out.writeObject(msgCriptografada);
-
-            a = "Enviado ArrayList<User> [OBJECT] para " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-
-            out.close();
-        } catch (SocketException se) {
-            se.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 }

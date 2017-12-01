@@ -71,6 +71,6 @@ public class Package implements Serializable {
 
     @Override
     public String toString() {
-        return "tag: " + tag + "\tnumber: " + number;
+        return "auth: " + auth + "\tdata: " + data;
     }
 }

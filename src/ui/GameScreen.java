@@ -322,7 +322,7 @@ public class GameScreen extends javax.swing.JPanel {
         if (Session.isServidor) {
             DataNetworkManager.respostasRecebidasDoRound.add(fimDoRound);
         } else {
-            Session.conexaoCliente.communicateEndRoundToValidate(fimDoRound);
+            Session.conexaoCliente.communicateAnswersFromClient(fimDoRound);
         }
         Session.JFramePrincipal.changeScreen(new GameScreenWaitingRoomPreValidation());
     }

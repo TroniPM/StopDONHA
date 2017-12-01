@@ -545,21 +545,42 @@ public class Servidor {
                  * FAZER COM QUE QUANDO FOR OBJETO GAMERUNTIME PEGUE A CHAVE DO
                  * SERVIDOR, E NÃO DO CLIENTE PARA DECRIPTAR
                  */
-                /* if (socket.getInetAddress().getHostAddress().equals(Session.masterIP)) {
-                    autenticacao = cs.AUTENTICACAO_SERVIDOR;
-                    encriptacao = cs.ENCRIPTACAO_SERVIDOR;
-                } else {
-                    autenticacao = cs.AUTENTICACAO_CLIENTE;
-                    encriptacao = cs.ENCRIPTACAO_CLIENTE;
+                /*if (Methods.isIpFromServidor(socket.getInetAddress().getHostAddress())) {
+                    Session.addLog("PACKAGE recebido foi do Cliente DENTRO servidor...");
+                    autenticacao = Session.security.passo2.KEY_ENCRIPTACAO;
+                    keyPublic = Session.security.passo2.KEY_PUBLICA;
+                    //keyPrivate = Session.security.passo2.KEY_PRIVATE;
+                } else if (socket.getInetAddress().getHostAddress().equals(Session.masterIP)) {
+                    //Caso conexão venha do servidor
+                    Session.addLog("PACKAGE recebido foi do servidor...");
+                    keySessao = Session.security.passo1.KEY_ENCRIPTACAO;
+                    keyPublic = Session.security.chavePublicaSERVIDOR;
+                    //keyPrivate = Session.security.passo1.KEY_PRIVATE;
                 }*/
-                //Verificação se CHaveSessao para o correspondente IP existe
+                //Verificação se ChaveSessao para o correspondente IP existe
                 if (cs == null) {
                     Session.addLog("ChaveSessao não encontrada. Dropando recepção dos dados");
                     return;
                 }
 
+                //Primeiro verifico se dados são decriptáveis com keys do cliente
+                Session.addLog("Verificando scheme (autenticação/decriptação) com chaves do CLIENTE.");
+                autenticacao = cs.AUTENTICACAO_CLIENTE;
+                encriptacao = cs.ENCRIPTACAO_CLIENTE;
+                int obj = getObject(msgBytes, autenticacao, encriptacao);
+                if (obj == 1 || obj == 0) {
+                    return;
+                } else if (obj != 2) {
+                    //verifico se dados se decriptáveis com keys do servidor
+                    Session.addLog("Verificando scheme (autenticação/decriptação) com chaves do SERVIDOR.");
+                    autenticacao = cs.AUTENTICACAO_SERVIDOR;
+                    encriptacao = cs.ENCRIPTACAO_SERVIDOR;
+                    obj = getObject(msgBytes, autenticacao, encriptacao);
+
+                }
+
                 //Verificação se dado recebido é um OBJETO PACKAGE
-                Object deserialize = SerializationUtils.deserialize(msgBytes);
+                /*Object deserialize = SerializationUtils.deserialize(msgBytes);
                 if (deserialize.getClass().getName().equals("security.Package")) {
                     security.Package p = (security.Package) deserialize;
 
@@ -600,8 +621,7 @@ public class Servidor {
                     }
                 } else {
                     Session.addLog("Dado recebido desconhecido.");
-                }
-
+                }*/
                 if (1 == 1) {
                     return;
                 }
@@ -647,7 +667,7 @@ public class Servidor {
                     try {
                         //Servidor recebendo chaves e comunicando suas
                         stepTwoType(StepTwo.convertFromString(msg));
-                        Session.conexaoCliente.sv_communicateStepOne(socket.getInetAddress().getHostAddress());
+                        Session.conexaoCliente.deletar_isso_daqui(socket.getInetAddress().getHostAddress());
                         return;
                     } catch (Exception ex) {
                     }
@@ -710,6 +730,59 @@ public class Servidor {
                     Session.canShowMainMenuByConnectionError = true;
                 }
             }
+        }
+
+        private int getObject(byte[] msgBytes, SecretKey autenticacao, SecretKey encriptacao) {
+            Object deserialize = SerializationUtils.deserialize(msgBytes);
+            if (deserialize.getClass().getName().equals("security.Package")) {
+                security.Package p = (security.Package) deserialize;
+
+                //Verificar autenticação
+                byte[] auth = null;
+                try {
+                    auth = Session.security.autenticacao(p.data, autenticacao);
+                } catch (Exception ex) {
+                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                //dropo recepção de dados por autenticação não estar correta
+                if (!Arrays.areEqual(p.auth, auth)) {
+                    Session.addLog("Assinatura diferente. Ignorando dados.");
+                    return 2;
+                } else {
+                    Session.addLog("Assinatura COMBINA. Receptando dados.");
+                }
+                //Desencriptar
+                byte[] dec;
+                try {
+                    Session.addLog("Decriptando dados recebidos com ChaveSessao.");
+                    dec = Session.security.desbrincar(p.data, encriptacao);
+                    deserialize = SerializationUtils.deserialize(dec);
+
+                    //System.out.println(deserialize.getClass().getName());
+                    Session.addLog("Fazendo casting de dado recebido.");
+                    //do stuff here
+                    if (deserialize.getClass().getName().equals("entidades.network.sendible.User")) {
+                        userType((User) deserialize);
+                    } else if (deserialize.getClass().getName().equals("entidades.GameRuntime")) {
+                        gameRunType((GameRuntime) deserialize);
+                    } else if (deserialize.getClass().getName().equals("entidades.network.sendible.EndRound")) {
+                        endRoundType((EndRound) deserialize);
+                    } else if (deserialize.getClass().getName().equals("entidades.network.sendible.EndRoundArray")) {
+                        arrayListEndRound(((EndRoundArray) deserialize).array);
+                    } else if (deserialize.getClass().getName().equals("entidades.network.sendible.UserArray")) {
+                        arrayListUser(((UserArray) deserialize).array);
+                    }
+
+                    return 1;
+                } catch (Exception ex) {
+                    Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+                    return 2;
+                }
+            } else {
+                Session.addLog("Dado recebido desconhecido.");
+            }
+            return 0;
         }
     }
 }

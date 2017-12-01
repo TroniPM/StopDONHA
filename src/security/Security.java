@@ -386,10 +386,10 @@ public class Security {
         chavePublica = keyPair.getPublic();
         chavePrivada = keyPair.getPrivate();
 
-        String pub = convertToString(chavePublica);
-        String pri = convertToString(chavePrivada);
-        Methods.writeOnFile(chave_this_public_path, pub, false);
-        Methods.writeOnFile(chave_this_private_path, pri, false);
+        //String pub = convertToString(chavePublica);
+        //String pri = convertToString(chavePrivada);
+        //Methods.writeOnFile(chave_this_public_path, pub, false);
+        //Methods.writeOnFile(chave_this_private_path, pri, false);
     }
 
     public String convertToString(Object chave) {

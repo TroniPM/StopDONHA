@@ -19,7 +19,7 @@ public class JustOneLock {
     private FileLock lock;
     private FileChannel channel;
     private String pathname = "./";
-    private String filename = "FireZeMissiles1111.tmp";
+    private String filename = "simplelock.tmp";
     private File file = null;
 
     public boolean isAppActive() throws Exception {/*System.getProperty("user.home")*/

@@ -4,9 +4,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import entidades.network.DataNetworkManager;
 import java.awt.Dimension;
+import javax.crypto.SecretKey;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import security.ChaveSessao;
 import util.Session;
 
 /**
@@ -63,11 +65,30 @@ public class GameScreenWaitingRoomPosValidation extends javax.swing.JPanel {
         Session.gRunTime.addScore(DataNetworkManager.sv_sumScore());
         String[] ips = Session.conexaoServidor.getIpsNetwork();
         for (int i = 0; i < ips.length; i++) {
-            //Não deixo enviar para o mesmo ip da máquina servidor.
             if (ips[i].equals(Session.masterIP)) {
                 continue;
             }
-            Session.conexaoCliente.sv_communicateScores(ips[i], Session.gRunTime.usuariosConectados);
+            ChaveSessao cs = null;
+            for (ChaveSessao in : Session.conexaoServidor.arrayChaveSessao) {
+                //System.out.println(in.ip + " <><><> " + ips[i]);
+                if (in.ip.equals(ips[i])) {
+                    cs = in;
+                }
+            }
+            System.out.println("ENVIANDO GAMERUNTIME");
+            System.out.println("#########################" + "\n" + cs);
+
+            final String ip = ips[i];
+            final SecretKey autenticacao = cs.AUTENTICACAO_SERVIDOR;
+            final SecretKey encriptacao = cs.ENCRIPTACAO_SERVIDOR;
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Session.conexaoCliente.sv_communicateScoresToClient(ip,
+                            Session.gRunTime.usuariosConectados, autenticacao, encriptacao);
+                }
+            }).start();
         }
         Session.JFramePrincipal.changeScreen(new HighScore());
     }

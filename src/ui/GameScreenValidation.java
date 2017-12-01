@@ -228,11 +228,11 @@ public class GameScreenValidation extends javax.swing.JPanel {
 
         if (Session.isServidor) {
             DataNetworkManager.respostasRecebidasValidated.add(DataNetworkManager.cl_calculateScore());
-            Session.JFramePrincipal.changeScreen(new GameScreenWaitingRoomPosValidation());
         } else {
-            Session.conexaoCliente.communicateDataValidated(DataNetworkManager.cl_calculateScore());
-            Session.JFramePrincipal.changeScreen(new GameScreenWaitingRoomPosValidation());
+            Session.conexaoCliente.communicateAswersValidatedFromClient(DataNetworkManager.cl_calculateScore());
         }
+
+        Session.JFramePrincipal.changeScreen(new GameScreenWaitingRoomPosValidation());
     }//GEN-LAST:event_jButtonFinishActionPerformed
 
     private void jButtonProxPlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProxPlayerActionPerformed

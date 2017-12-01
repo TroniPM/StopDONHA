@@ -14,6 +14,7 @@ import javax.swing.table.DefaultTableModel;
 import entidades.network.Servidor;
 import entidades.network.sendible.User;
 import java.awt.Dimension;
+import javax.crypto.SecretKey;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import security.ChaveSessao;
@@ -305,17 +306,26 @@ public class WaitingRoom extends javax.swing.JPanel {
             }
             ChaveSessao cs = null;
             for (ChaveSessao in : Session.conexaoServidor.arrayChaveSessao) {
-                System.out.println(in.ip + " <><><> " + ips[i]);
+                //System.out.println(in.ip + " <><><> " + ips[i]);
                 if (in.ip.equals(ips[i])) {
                     cs = in;
                 }
             }
             System.out.println("ENVIANDO GAMERUNTIME");
             System.out.println("#########################" + "\n" + cs);
-            //Envio pra cada cliente o OBJECT
-            //Session.conexaoCliente.sv_communicateStartGame(ips[i], Session.gRunTime);
-            Session.conexaoCliente.communicateStartRound(ips[i], Session.gRunTime,
-                    cs.AUTENTICACAO_SERVIDOR, cs.ENCRIPTACAO_SERVIDOR);
+
+            final String ip = ips[i];
+            final SecretKey autenticacao = cs.AUTENTICACAO_SERVIDOR;
+            final SecretKey encriptacao = cs.ENCRIPTACAO_SERVIDOR;
+
+            //Envio pra cada cliente o OBJECT de configuração de partida.
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Session.conexaoCliente.sv_communicateStartRound(ip, Session.gRunTime,
+                            autenticacao, encriptacao);
+                }
+            }).start();
         }
         cancelAllThreads();
         Session.JFramePrincipal.changeScreen(new GameScreen());

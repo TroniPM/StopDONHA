@@ -8,10 +8,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.crypto.SecretKey;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
+import security.ChaveSessao;
 import util.Session;
 
 /**
@@ -106,18 +108,32 @@ public class HighScore extends javax.swing.JPanel {
     }
 
     private void startGame() {
-        String[] ips = Session.conexaoServidor.getIpsNetwork();
-        for (String ip : ips) {
+        final String[] ips = Session.conexaoServidor.getIpsNetwork();
+        for (int i = 0; i < ips.length; i++) {
             //Não deixo enviar para o mesmo ip da máquina servidor.
-            if (ip.equals(Session.masterIP)) {
+            if (ips[i].equals(Session.masterIP)) {
                 continue;
             }
+            ChaveSessao cs = null;
+            for (ChaveSessao in : Session.conexaoServidor.arrayChaveSessao) {
+                //System.out.println(in.ip + " <><><> " + ips[i]);
+                if (in.ip.equals(ips[i])) {
+                    cs = in;
+                }
+            }
+            System.out.println("ENVIANDO GAMERUNTIME");
+            System.out.println("#########################" + "\n" + cs);
+
+            final String ip = ips[i];
+            final SecretKey autenticacao = cs.AUTENTICACAO_SERVIDOR;
+            final SecretKey encriptacao = cs.ENCRIPTACAO_SERVIDOR;
 
             //Jogo processamento pra uma thread auxiliar.
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Session.conexaoCliente.sv_communicateStartGame(ip, Session.gRunTime);
+                    Session.conexaoCliente.sv_communicateStartRound(ip, Session.gRunTime,
+                            autenticacao, encriptacao);
                 }
             }).start();
         }
