@@ -1,1 +1,6 @@
 http://www.getacert.com/selfsignedcert.html
+
+APós gerar o certificado, pegar o CSR e inserir aqui
+http://www.getacert.com/signacert.html
+
+depois baixar o .cer

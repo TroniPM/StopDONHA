@@ -10,22 +10,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StringWriter;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 /**
  *
@@ -212,6 +208,23 @@ public class Methods {
     public static byte[] readFileBytes(String filename) throws IOException {
         Path path = Paths.get(filename);
         return Files.readAllBytes(path);
+    }
+
+    public static void print(Object p) {
+        if (p instanceof PrivateKey) {
+            StringWriter sw = new StringWriter();
+            JcaPEMWriter writer = new JcaPEMWriter(sw);
+            try {
+                writer.writeObject(p);
+                writer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Methods.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println(sw.getBuffer().toString());
+        } else {
+            System.out.println(p);
+        }
+
     }
 
     /*public static PublicKey readPublicKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
