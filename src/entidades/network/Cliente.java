@@ -33,21 +33,42 @@ import util.Session;
  */
 public class Cliente {
 
-    private boolean isConnected = false;
+    //private boolean isConnected = false;
     private Socket socket = null;
-    //private ObjectOutputStream out = null;
+    private ObjectOutputStream out = null;
 
     public Cliente() {
-        try {
-            //socket = new Socket(Session.masterIP, PORT_SERVER);
-            //out = new ObjectOutputStream(socket.getOutputStream());
-        } catch (Exception ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+
+    }
+
+    public Socket getSocket() {
+        if (socket == null) {
+            try {
+                socket = new Socket(Session.masterIP, PORT_SERVER);
+            } catch (Exception ex) {
+                Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return socket;
+        } else {
+            return socket;
+        }
+    }
+
+    public ObjectOutputStream getStrem() {
+        if (out == null) {
+            try {
+                out = new ObjectOutputStream(socket.getOutputStream());
+            } catch (Exception ex) {
+                Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return out;
+        } else {
+            return out;
         }
     }
 
     public void closeAndCleanAllData() {
-        isConnected = false;
+        //isConnected = false;
     }
 
     public static void main(String[] args) {
@@ -68,8 +89,10 @@ public class Cliente {
         String a = "startScheme: Vai começar scheme em " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
 
-        Socket socket = new Socket(Session.masterIP, PORT_SERVER);
-        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+        //socket = new Socket(Session.masterIP, PORT_SERVER);
+        socket = getSocket();
+        //ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+        out = getStrem();
         a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
 
@@ -153,8 +176,10 @@ public class Cliente {
         String a = "communicateWaitingRoomEnter: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
 
-        Socket socket = new Socket(Session.masterIP, PORT_SERVER);
-        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+        //socket = new Socket(Session.masterIP, PORT_SERVER);
+        socket = getSocket();
+        out = getStrem();
+        //ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
         a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
 
@@ -168,50 +193,9 @@ public class Cliente {
         /*SEGURANÇA*/
 
         out.writeObject(data);
+        out.flush();
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
-    }
-
-    /**
-     * Só o clienteMAIN utiliza este método. Ao clicar em iniciar jogo, na sala
-     * de espera.
-     *
-     * @param ip
-     * @param obj
-     * @param autenticacao
-     * @param encriptar
-     */
-    public void sv_communicateStartGame(String ip, GameRuntime obj,
-            SecretKey autenticacao, SecretKey encriptar) {
-        try {
-            String a = "sv_communicateStartRound: Começando comunicação com " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-            //Não deixo enviar para o mesmo ip da máquina servidor.
-            if (ip.equals(Session.masterIP)) {
-                return;
-            }
-            Socket socket = new Socket(ip, PORT_CLIENT);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            a = "Conectado a " + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-
-            /*SEGURANÇA*/
-            byte[] data = generatePackage(SerializationUtils.serialize(obj),
-                    Session.security.KEY.AUTENTICACAO_CLIENTE,
-                    Session.security.KEY.ENCRIPTACAO_CLIENTE);
-            /*SEGURANÇA*/
-
-            out.writeObject(data);
-
-            a = "Enviado GameRuntime [OBJECT] para" + ip + ":" + PORT_CLIENT;
-            Session.addLog(a);
-
-            out.close();
-        } catch (SocketException se) {
-            se.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -255,7 +239,8 @@ public class Cliente {
         String a = "communicateAnswersFromClient: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
         try {
-            Socket socket = new Socket(Session.masterIP, PORT_SERVER);
+            //socket = new Socket(Session.masterIP, PORT_SERVER);
+            socket = getSocket();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
@@ -288,7 +273,8 @@ public class Cliente {
         String a = "communicateAswersValidatedFromClient: Começando comunicação com " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
         try {
-            Socket socket = new Socket(Session.masterIP, PORT_SERVER);
+            //socket = new Socket(Session.masterIP, PORT_SERVER);
+            socket = getSocket();
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
@@ -434,6 +420,48 @@ public class Cliente {
             out.close();
         } catch (Exception se) {
             se.printStackTrace();
+        }
+    }
+
+    /**
+     * Só o clienteMAIN utiliza este método. Ao clicar em iniciar jogo, na sala
+     * de espera.
+     *
+     * @param ip
+     * @param obj
+     * @param autenticacao
+     * @param encriptar
+     */
+    public void sv_communicateStartGame(String ip, GameRuntime obj,
+            SecretKey autenticacao, SecretKey encriptar) {
+        try {
+            String a = "sv_communicateStartRound: Começando comunicação com " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+            //Não deixo enviar para o mesmo ip da máquina servidor.
+            if (ip.equals(Session.masterIP)) {
+                return;
+            }
+            Socket socket = new Socket(ip, PORT_CLIENT);
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            a = "Conectado a " + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+
+            /*SEGURANÇA*/
+            byte[] data = generatePackage(SerializationUtils.serialize(obj),
+                    Session.security.KEY.AUTENTICACAO_CLIENTE,
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE);
+            /*SEGURANÇA*/
+
+            out.writeObject(data);
+
+            a = "Enviado GameRuntime [OBJECT] para" + ip + ":" + PORT_CLIENT;
+            Session.addLog(a);
+
+            out.close();
+        } catch (SocketException se) {
+            se.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
