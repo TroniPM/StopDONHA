@@ -114,6 +114,14 @@ public class Methods {
         return null;
     }
 
+    private static String encode(byte[] b) {
+        return Base64.encode(b);
+    }
+
+    private static byte[] decode(String b) {
+        return Base64.decode(b);
+    }
+
     public static String convertToString(Object obj) {
         try {
             String str;
@@ -121,7 +129,7 @@ public class Methods {
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(obj);
             byte[] objeto = baos.toByteArray();
-            str = Base64.encode(objeto);
+            str = encode(objeto);
             oos.close();
             return str;
         } catch (IOException e) {
@@ -143,7 +151,7 @@ public class Methods {
 
     public static Object convertFromString(String str) throws ClassNotFoundException {
         try {
-            ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decode(str));
+            ByteArrayInputStream bais = new ByteArrayInputStream(decode(str));
             ObjectInputStream ois = new ObjectInputStream(bais);
             return ois.readObject();
         } catch (IOException e) {
@@ -181,7 +189,7 @@ public class Methods {
     }
 
     public static String getAvaliableIps() {
-        String ret = "";
+        String retorno = "";
         try {
             Enumeration e = NetworkInterface.getNetworkInterfaces();
             while (e.hasMoreElements()) {
@@ -190,19 +198,24 @@ public class Methods {
                 while (ee.hasMoreElements()) {
                     InetAddress i = (InetAddress) ee.nextElement();
                     //System.out.println(i.getHostAddress());
-                    ret += "'" + i.getHostAddress() + "'";
+                    retorno += "'" + i.getHostAddress() + "'";
                     if (ee.hasMoreElements()) {
-                        ret += " ou ";
+                        retorno += ", ";
                     }
                 }
-                if (e.hasMoreElements()) {
-                    ret += " ou ";
+
+                String substring = retorno.substring(retorno.length() - 1);
+                if (substring.equals("'")) {
+                    retorno += ", ";
                 }
             }
         } catch (Exception e) {
         }
+        if (retorno.length() > 0) {
+            retorno = retorno.substring(0, retorno.length() - 1);
+        }
 
-        return ret;
+        return retorno;
     }
 
     public static byte[] readFileBytes(String filename) throws IOException {
@@ -226,16 +239,4 @@ public class Methods {
         }
 
     }
-
-    /*public static PublicKey readPublicKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(readFileBytes(filename));
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return keyFactory.generatePublic(publicSpec);
-    }
-
-    public static PrivateKey readPrivateKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(readFileBytes(filename));
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return keyFactory.generatePrivate(keySpec);
-    }*/
 }

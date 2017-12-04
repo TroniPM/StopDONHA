@@ -243,9 +243,8 @@ public class WaitingRoom extends javax.swing.JPanel {
         jLabel1.setText("Aguardando o início do jogo... Sala de Espera em");
         add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 50, -1, -1));
 
-        jLabel3.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         jLabel3.setText("aaaaaaaaaaaa");
-        add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 80, 420, 50));
+        add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 80, 420, 120));
 
         jTable1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
@@ -261,7 +260,7 @@ public class WaitingRoom extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(jTable1);
 
-        add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 140, 420, 250));
+        add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 210, 420, 200));
 
         jButton1.setText("Jogar");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -269,7 +268,7 @@ public class WaitingRoom extends javax.swing.JPanel {
                 jButton1ActionPerformed(evt);
             }
         });
-        add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 440, 80, 40));
+        add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 450, 80, 40));
 
         jButton2.setText("Sair da SALA");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
@@ -277,7 +276,7 @@ public class WaitingRoom extends javax.swing.JPanel {
                 jButton2ActionPerformed(evt);
             }
         });
-        add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 440, 120, 40));
+        add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 450, 120, 40));
 
         jButton3.setText("LOGS");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
@@ -285,7 +284,7 @@ public class WaitingRoom extends javax.swing.JPanel {
                 jButton3ActionPerformed(evt);
             }
         });
-        add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 440, -1, 40));
+        add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 450, -1, 40));
 
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagens/telaespera.png"))); // NOI18N
         jLabel2.setText("jLabel2");

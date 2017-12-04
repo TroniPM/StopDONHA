@@ -13,9 +13,7 @@ import entidades.network.sendible.EndRound;
 import entidades.network.sendible.EndRoundArray;
 import entidades.network.sendible.User;
 import entidades.network.sendible.UserArray;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.SecretKey;
@@ -27,7 +25,6 @@ import security.KeyAutenticacaoCliente;
 import security.KeyAutenticacaoServidor;
 import security.KeyEncriptacaoCliente;
 import security.KeyEncriptacaoServidor;
-import util.Methods;
 import util.Session;
 
 /**

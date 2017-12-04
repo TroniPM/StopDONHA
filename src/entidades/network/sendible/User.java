@@ -1,11 +1,5 @@
 package entidades.network.sendible;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;

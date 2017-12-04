@@ -1,13 +1,16 @@
 package ui;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
+import security.Security;
 import util.Session;
 
 /**
@@ -15,6 +18,9 @@ import util.Session;
  * @author PMateus <paulomatew@gmailcom>
  */
 public class GameScreenConfigGame extends javax.swing.JPanel {
+
+    public static boolean certificadoSelecionado = false;
+    public JFileChooser fileChooser = new JFileChooser();
 
     public List<JRadioButton> buttons = new ArrayList<>();
 
@@ -92,6 +98,7 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
         jButton1 = new javax.swing.JButton();
         jTextField1 = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
 
         setPreferredSize(new java.awt.Dimension(620, 520));
@@ -238,7 +245,7 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
                 jButton1ActionPerformed(evt);
             }
         });
-        add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 410, 80, 40));
+        add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 410, 80, 40));
 
         jTextField1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jTextField1.setText(Session.nickname);
@@ -255,7 +262,15 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
                 jButton2ActionPerformed(evt);
             }
         });
-        add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 410, 80, 40));
+        add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 410, 80, 40));
+
+        jButton3.setText("Selecionar certificado");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+        add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 410, 170, 40));
 
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagens/tela.png"))); // NOI18N
         jLabel5.setText("jLabel5");
@@ -293,7 +308,11 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
     }
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        start();
+        if (certificadoSelecionado) {
+            start();
+        } else {
+            JOptionPane.showMessageDialog(this, "Você ainda não selecionou um certificado.");
+        }
 
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -325,12 +344,56 @@ public class GameScreenConfigGame extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jTextField1KeyPressed
 
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        File workingDirectory = new File(System.getProperty("user.dir"));
+        fileChooser.setCurrentDirectory(workingDirectory);
+
+        int i = fileChooser.showSaveDialog(this);
+        if (i != 1) {
+            Security.certificado = fileChooser.getSelectedFile();
+
+            while (true) {
+                String senha = JOptionPane.showInputDialog(this,
+                        "Digite a senha do certificado " + Security.certificado.getAbsolutePath() + ":");
+                String path = Security.certificado.getAbsolutePath();
+                if (senha != null && senha.length() > 0) {
+                    //Se alguma senha foi digitada
+                    if (Session.security.checkPasswordFromCert(path, senha)) {
+                        //Checar validade da senha
+                        if (Session.security.checkValidity(path, senha)) {
+                            Session.security.chavePrivadaTHIS
+                                    = Session.security.getPrivateKeyFromCert(Security.certificado.getAbsolutePath(), senha);
+
+                            certificadoSelecionado = true;
+                            JOptionPane.showMessageDialog(this, "Certificado carregado com sucesso.");
+                            break;
+                        } else {
+                            Security.certificado = null;
+                            certificadoSelecionado = false;
+                            JOptionPane.showMessageDialog(this, "Certificado expirado.");
+                            break;
+                        }
+
+                    }
+                } else {
+                    Security.certificado = null;
+                    certificadoSelecionado = false;
+                    break;
+                }
+            }
+        } else {
+            Security.certificado = null;
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
