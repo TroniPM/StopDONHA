@@ -27,6 +27,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.Cipher;
@@ -49,6 +51,8 @@ public class Security {
 
     public String TAG = null;
     public int TAG_NUMBER = 1;
+    //Ips e numeração
+    public Map<String, Integer> mensagensEnviadasAClientes = new HashMap<String, Integer>();
 
     public ChaveSessao KEY;
     public static File certificado = null;

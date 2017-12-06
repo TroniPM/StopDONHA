@@ -5,11 +5,6 @@
  */
 package security;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
@@ -24,10 +19,10 @@ public class Package implements Serializable {
     public int number;
     public String tag;
 
-    public Package(byte[] auth, byte[] data, String tag, int number) {
+    public Package(byte[] auth, byte[] data, int number) {
         this.auth = auth;
         this.data = data;
-        this.tag = tag;
+        //this.tag = tag;
         this.number = number;
     }
 

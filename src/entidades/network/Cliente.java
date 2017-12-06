@@ -177,7 +177,7 @@ public class Cliente {
         /*SEGURANÇA*/
         byte[] data = generatePackage(SerializationUtils.serialize(user),
                 Session.security.KEY.AUTENTICACAO_CLIENTE,
-                Session.security.KEY.ENCRIPTACAO_CLIENTE);
+                Session.security.KEY.ENCRIPTACAO_CLIENTE, null);
         /*SEGURANÇA*/
         writeOnOutputStream(socket, data);
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
@@ -194,8 +194,7 @@ public class Cliente {
      * @return
      */
     public byte[] generatePackage(byte[] data, SecretKey autenticacao,
-            SecretKey encriptacao) {
-        Session.addLog("Gerando package para enviar.");
+            SecretKey encriptacao, String ipFromDestinatiario) {
         byte[] encryp = Session.security.criptografaSimetrica(data, encriptacao);
         // Gera Autenticação
         byte[] auth = null;
@@ -206,12 +205,33 @@ public class Cliente {
         } catch (InvalidCipherTextException ex) {
             Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         // Cria um Package para enviar
-        security.Package p = new security.Package(auth, encryp, Session.security.TAG,
-                Session.security.TAG_NUMBER++);
+        security.Package p = null;
+        if (ipFromDestinatiario == null) {
+            p = new security.Package(auth, encryp, ++Session.security.TAG_NUMBER);
+        } else if (Session.security.mensagensEnviadasAClientes.containsKey(ipFromDestinatiario)) {
+            //já enviou dados pra esse ip. Então pego o último número.
+            int get = Session.security.mensagensEnviadasAClientes.get(ipFromDestinatiario);
+            /**
+             * TODO. colocar 0 ao invés de ++get para gerar erro de pacote
+             * anterior ao já enviado.
+             */
+            //p = new security.Package(auth, encryp, 0);
+            p = new security.Package(auth, encryp, ++get);
+            //Atualizo númeração do ip específico.
+            Session.security.mensagensEnviadasAClientes.
+                    put(ipFromDestinatiario, get);
+        } else {
+            //Primeira mensagem a enviar para esse ip
+            p = new security.Package(auth, encryp, 1);
+            Session.security.mensagensEnviadasAClientes.
+                    put(ipFromDestinatiario, 1);
+        }
+
         // Converte o Package em um array de bytes
         byte[] d = SerializationUtils.serialize(p);
-        Session.addLog("Package gerado.");
+
         return d;
     }
 
@@ -235,7 +255,7 @@ public class Cliente {
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(obj),
                     Session.security.KEY.AUTENTICACAO_CLIENTE,
-                    Session.security.KEY.ENCRIPTACAO_CLIENTE);
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE, null);
             /*SEGURANÇA*/
 
             writeOnOutputStream(socket, data);
@@ -271,7 +291,7 @@ public class Cliente {
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(g),
                     Session.security.KEY.AUTENTICACAO_CLIENTE,
-                    Session.security.KEY.ENCRIPTACAO_CLIENTE);
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE, null);
             /*SEGURANÇA*/
             writeOnOutputStream(socket, data);
 
@@ -309,7 +329,7 @@ public class Cliente {
 
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(obj),
-                    autenticacao, encriptar);
+                    autenticacao, encriptar, ip);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -353,7 +373,7 @@ public class Cliente {
 
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(g),
-                    autenticacao, encriptar);
+                    autenticacao, encriptar, ip);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -394,7 +414,7 @@ public class Cliente {
             UserArray g = new UserArray(obj);
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(g),
-                    autenticacao, encriptar);
+                    autenticacao, encriptar, ip);
             /*SEGURANÇA*/
 
             out.writeObject(data);
@@ -434,7 +454,7 @@ public class Cliente {
             /*SEGURANÇA*/
             byte[] data = generatePackage(SerializationUtils.serialize(obj),
                     Session.security.KEY.AUTENTICACAO_CLIENTE,
-                    Session.security.KEY.ENCRIPTACAO_CLIENTE);
+                    Session.security.KEY.ENCRIPTACAO_CLIENTE, ip);
             /*SEGURANÇA*/
 
             out.writeObject(data);

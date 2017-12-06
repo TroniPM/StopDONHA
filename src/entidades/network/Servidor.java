@@ -16,7 +16,9 @@ import entidades.network.sendible.UserArray;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
 import java.security.PrivateKey;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.crypto.SecretKey;
 import org.apache.commons.lang3.SerializationUtils;
 import org.bouncycastle.util.Arrays;
@@ -48,6 +50,7 @@ public class Servidor {
     public static final int PORT_CLIENT = 12346;
 
     private static Thread threadWaitingRoom, threadStartGame/*, threadWaitingKey, threadEndRound, threadStartValidation, threadShowScore*/;
+    private Map<String, Integer> mensagensRecebidasDeClientes = new HashMap<String, Integer>();
 
     public Servidor() {
 
@@ -551,6 +554,26 @@ public class Servidor {
             if (deserialize.getClass().getName().equals("security.Package")) {
                 security.Package p = (security.Package) deserialize;
 
+                p.tag = socket.getInetAddress().getHostAddress();
+
+                //Verificando se já recebeu dados desse ip
+                Session.addLog("Verificando se dados recebidos são posteriores aos já recebidos.");
+                if (mensagensRecebidasDeClientes.containsKey(p.tag)) {
+                    int ultimoNumeroSalvo = mensagensRecebidasDeClientes.get(p.tag);
+                    int numeroVindoDoCliente = p.number;
+
+                    //Se numeração atual é MAIOR que numeração anterior, deixo passar
+                    if (numeroVindoDoCliente <= ultimoNumeroSalvo) {
+                        Session.addLog("Dados recebidos são repetidos, não continuar. Ignorando dados.");
+                        return 0;
+                    } else {
+                        Session.addLog("Dados recebidos são ok, continuar scheme.");
+                    }
+                }
+
+                Session.addLog("Atualizando hashmap com númeração atual para o IP em questão.");
+                //Atualizo/Adiciono numeração de ip
+                mensagensRecebidasDeClientes.put(p.tag, p.number);//Já existindo a chave, irá atualizá-la
                 //Verificar autenticação
                 byte[] auth = null;
                 try {
