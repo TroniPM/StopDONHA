@@ -35,14 +35,14 @@ public class Cliente {
 
     //private boolean isConnected = false;
     private Socket socket = null;
-    private ObjectOutputStream out = null;
 
     public Cliente() {
 
     }
 
     public Socket getSocket() {
-        if (socket == null) {
+        if (socket == null || socket.isClosed()) {
+            System.out.println("VAI CRIAR SOCKET");
             try {
                 socket = new Socket(Session.masterIP, PORT_SERVER);
             } catch (Exception ex) {
@@ -54,17 +54,17 @@ public class Cliente {
         }
     }
 
-    public ObjectOutputStream getStrem() {
-        if (out == null) {
-            try {
-                out = new ObjectOutputStream(socket.getOutputStream());
-            } catch (Exception ex) {
-                Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            return out;
-        } else {
-            return out;
+    private boolean writeOnOutputStream(Socket socket, byte[] obj) {
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.writeObject(obj);
+            out.flush();
+
+            return true;
+        } catch (IOException ex) {
+            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return false;
     }
 
     public void closeAndCleanAllData() {
@@ -91,8 +91,7 @@ public class Cliente {
 
         //socket = new Socket(Session.masterIP, PORT_SERVER);
         socket = getSocket();
-        //ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-        out = getStrem();
+
         a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
 
@@ -116,33 +115,24 @@ public class Cliente {
         KeyEncriptacaoCliente kec = new KeyEncriptacaoCliente(cs.ENCRIPTACAO_CLIENTE);
 
         //Aviso ao servidor q vou iniciar
-        out.writeObject("start".getBytes());
-        out.flush();
+        writeOnOutputStream(socket, "start".getBytes());
         //System.out.println("Enviou Start");
         //Começo do envio de chaves
         byte[] b1 = SerializationUtils.serialize(kas);
         byte[] criptografa1 = security.Security.criptografaAssimetrica(b1, pub);
-        out = new ObjectOutputStream(socket.getOutputStream());
-        out.writeObject(criptografa1);
-        out.flush();
+        writeOnOutputStream(socket, criptografa1);
         Session.addLog("Enviou chave1");
         byte[] b2 = SerializationUtils.serialize(kac);
         byte[] criptografa2 = security.Security.criptografaAssimetrica(b2, pub);
-        out = new ObjectOutputStream(socket.getOutputStream());
-        out.writeObject(criptografa2);
-        out.flush();
+        writeOnOutputStream(socket, criptografa2);
         Session.addLog("Enviou chave2");
         byte[] b3 = SerializationUtils.serialize(kes);
         byte[] criptografa3 = security.Security.criptografaAssimetrica(b3, pub);
-        out = new ObjectOutputStream(socket.getOutputStream());
-        out.writeObject(criptografa3);
-        out.flush();
+        writeOnOutputStream(socket, criptografa3);
         Session.addLog("Enviou chave3");
         byte[] b4 = SerializationUtils.serialize(kec);
         byte[] criptografa4 = security.Security.criptografaAssimetrica(b4, pub);
-        out = new ObjectOutputStream(socket.getOutputStream());
-        out.writeObject(criptografa4);
-        out.flush();
+        writeOnOutputStream(socket, criptografa4);
         Session.addLog("Enviou chave4");
         Session.addLog("Enviado ChaveSessao para " + Session.masterIP + ":" + PORT_SERVER);
 
@@ -152,8 +142,8 @@ public class Cliente {
                 byte[] msgBytes = (byte[]) new ObjectInputStream(socket.getInputStream()).readObject();
                 if (new String(msgBytes).equals("valid")) {
                     Session.addLog("Confirmação recebida. Prosseguir...");
-                    out.close();
-                    socket.close();
+                    //out.close();
+                    //socket.close();
 
                     return true;
                 } else if (new String(msgBytes).equals("invalid")) {
@@ -161,7 +151,6 @@ public class Cliente {
                             + "é inválida. Provavelmente a chave pública do "
                             + "servidor dentro do cliente não dá match com a "
                             + "chave privada dentro do servidor. NÃO vai prosseguir...");
-                    out.close();
                     socket.close();
 
                     return false;
@@ -178,7 +167,6 @@ public class Cliente {
 
         //socket = new Socket(Session.masterIP, PORT_SERVER);
         socket = getSocket();
-        out = getStrem();
         //ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
         a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
@@ -191,9 +179,7 @@ public class Cliente {
                 Session.security.KEY.AUTENTICACAO_CLIENTE,
                 Session.security.KEY.ENCRIPTACAO_CLIENTE);
         /*SEGURANÇA*/
-
-        out.writeObject(data);
-        out.flush();
+        writeOnOutputStream(socket, data);
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
     }
@@ -209,6 +195,7 @@ public class Cliente {
      */
     public byte[] generatePackage(byte[] data, SecretKey autenticacao,
             SecretKey encriptacao) {
+        Session.addLog("Gerando package para enviar.");
         byte[] encryp = Session.security.criptografaSimetrica(data, encriptacao);
         // Gera Autenticação
         byte[] auth = null;
@@ -224,7 +211,7 @@ public class Cliente {
                 Session.security.TAG_NUMBER++);
         // Converte o Package em um array de bytes
         byte[] d = SerializationUtils.serialize(p);
-
+        Session.addLog("Package gerado.");
         return d;
     }
 
@@ -241,7 +228,7 @@ public class Cliente {
         try {
             //socket = new Socket(Session.masterIP, PORT_SERVER);
             socket = getSocket();
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            //ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
@@ -251,7 +238,7 @@ public class Cliente {
                     Session.security.KEY.ENCRIPTACAO_CLIENTE);
             /*SEGURANÇA*/
 
-            out.writeObject(data);
+            writeOnOutputStream(socket, data);
 
             a = "Enviado EndRound [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
@@ -275,7 +262,7 @@ public class Cliente {
         try {
             //socket = new Socket(Session.masterIP, PORT_SERVER);
             socket = getSocket();
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            //ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             a = "Conectado a " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
 
@@ -286,18 +273,16 @@ public class Cliente {
                     Session.security.KEY.AUTENTICACAO_CLIENTE,
                     Session.security.KEY.ENCRIPTACAO_CLIENTE);
             /*SEGURANÇA*/
-
-            out.writeObject(data);
+            writeOnOutputStream(socket, data);
 
             a = "Enviado ArrayList<User> [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
             Session.addLog(a);
-
-            out.close();
         } catch (Exception se) {
             se.printStackTrace();
         }
     }
 
+    //////////////////////Conexões utilizadas pelo servidor
     /**
      * Utilizado pelo clienteMAIN, após ver painel de highscores, ao clicar em
      * começar próximo round. Enviará GameRuntime, classe que contém todas as

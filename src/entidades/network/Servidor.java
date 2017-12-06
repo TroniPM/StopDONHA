@@ -40,14 +40,14 @@ public class Servidor {
 
     public ArrayList<Socket> networkClientsSockets = new ArrayList<>();
     public ArrayList<User> arrayUsuariosComChaves = new ArrayList<>();
-    private ArrayList<EchoThread> arrayAllThreads = new ArrayList<>();
+    private ArrayList<EchoThread> arrayAllClients = new ArrayList<>();
     public ArrayList<ChaveSessao> arrayChaveSessao = new ArrayList<>();
 
     private String[] ipsNetwork = null;
     public static final int PORT_SERVER = 12345;
     public static final int PORT_CLIENT = 12346;
 
-    private static Thread threadWaitingKey, threadWaitingRoom, threadStartGame, threadEndRound, threadStartValidation, threadShowScore;
+    private static Thread threadWaitingRoom, threadStartGame/*, threadWaitingKey, threadEndRound, threadStartValidation, threadShowScore*/;
 
     public Servidor() {
 
@@ -106,7 +106,7 @@ public class Servidor {
         } catch (Exception e) {
             e.getStackTrace();
         }
-        try {
+        /*try {
             threadEndRound.interrupt();
         } catch (Exception e) {
             e.getStackTrace();
@@ -120,19 +120,19 @@ public class Servidor {
             threadShowScore.interrupt();
         } catch (Exception e) {
             e.getStackTrace();
-        }
+        }*/
 
         networkClientsSockets.clear();
         ipsNetwork = null;
 
-        for (int i = 0; i < arrayAllThreads.size(); i++) {
-            if (arrayAllThreads.get(i) == null) {
+        for (int i = 0; i < arrayAllClients.size(); i++) {
+            if (arrayAllClients.get(i) == null) {
                 continue;
             }
-            arrayAllThreads.get(i).closeSocket();
+            arrayAllClients.get(i).closeSocket();
             try {
-                arrayAllThreads.get(i).interrupt();
-                arrayAllThreads.set(i, null);
+                arrayAllClients.get(i).interrupt();
+                arrayAllClients.set(i, null);
             } catch (Exception a) {
                 //System.out.println("Não conseguiu finalizar thread.");
             }
@@ -165,6 +165,58 @@ public class Servidor {
         }
     }
 
+    public void ListeningWaitingRoom() {
+        threadWaitingRoom = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                serverSocket = makeConnectionServer();
+                Session.addLog("Esperando conexão...");
+                while (true) {
+                    Socket socket = null;
+                    try {
+                        socket = serverSocket.accept();
+                    } catch (IOException e) {
+                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
+                        break;
+                    }
+                    Session.addLog("Recebeu conexão. Vai criar uma thread pra ela.");
+                    // new threa for a client
+                    EchoThread a = new EchoThread(socket);
+                    arrayAllClients.add(a);
+                    a.start();
+                }
+            }
+        });
+        threadWaitingRoom.start();
+
+    }
+
+    public void ListeningStartGame() {
+        threadStartGame = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                serverClientSocket = makeConnectionClientServer();
+                Session.addLog("Esperando conexão...");
+                while (true) {
+                    Socket socket = null;
+                    try {
+                        socket = serverClientSocket.accept();
+                    } catch (IOException e) {
+                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
+                        break;
+                    }
+                    // new threa for a client
+                    Session.addLog("Recebeu conexão. Vai criar uma thread pra ela.");
+                    EchoThread a = new EchoThread(socket);
+                    arrayAllClients.add(a);
+                    a.start();
+                }
+            }
+        });
+        threadStartGame.start();
+    }
+
+    /*
     public void ListeningStepOne() {
         //Não está dentro de um WHILE. Só recebe UMA conexão.
         threadWaitingKey = new Thread(new Runnable() {
@@ -185,56 +237,7 @@ public class Servidor {
         threadWaitingKey.start();
 
     }
-
-    public void ListeningWaitingRoom() {
-        threadWaitingRoom = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                serverSocket = makeConnectionServer();
-                Session.addLog("Ouvindo WaitingRoom");
-                while (true) {
-                    Socket socket = null;
-                    try {
-                        socket = serverSocket.accept();
-                    } catch (IOException e) {
-                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
-                        break;
-                    }
-                    // new threa for a client
-                    EchoThread a = new EchoThread(socket);
-                    arrayAllThreads.add(a);
-                    a.start();
-                }
-            }
-        });
-        threadWaitingRoom.start();
-
-    }
-
-    public void ListeningStartGame() {
-        threadStartGame = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                serverClientSocket = makeConnectionClientServer();
-                Session.addLog("Ouvindo StartGame");
-                while (true) {
-                    Socket socket = null;
-                    try {
-                        socket = serverClientSocket.accept();
-                    } catch (IOException e) {
-                        Session.addLog("ListeningWaitingRoom() I/O error: " + e.getLocalizedMessage() + ". Fechando conexão...");
-                        break;
-                    }
-                    // new threa for a client
-                    EchoThread a = new EchoThread(socket);
-                    arrayAllThreads.add(a);
-                    a.start();
-                }
-            }
-        });
-        threadStartGame.start();
-    }
-
+    
     public void ListeningEndRoundToValidate() {
         threadEndRound = new Thread(new Runnable() {
             @Override
@@ -307,13 +310,19 @@ public class Servidor {
         threadShowScore.start();
 
     }
-
+     */
     public class EchoThread extends Thread {
 
         private Socket socket;
 
+        private User user = null;
+
         public EchoThread(Socket clientSocket) {
             this.socket = clientSocket;
+        }
+
+        public User getUser() {
+            return this.user;
         }
 
         public void closeSocket() {
@@ -335,6 +344,7 @@ public class Servidor {
 
             /* Adiciono a um array para poder mesclar esse objeto junto com os
             objetos do GameRuntime */
+            user = data;
             arrayUsuariosComChaves.add(data);
         }
 
@@ -397,7 +407,7 @@ public class Servidor {
                     msg = new String(msgBytes);
                 } catch (Exception ex) {
                     msgBytes = null;
-                    System.out.println("erro");
+                    //System.out.println("erro");
                 }
                 //do stuff
                 if (msgBytes == null) {

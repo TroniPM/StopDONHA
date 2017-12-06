@@ -104,7 +104,10 @@ public class GameScreenWaitingRoomPosValidation extends javax.swing.JPanel {
             jLabelPlayersRemaing.setVisible(true);
             jButton2.setVisible(true);
         } else {
-            Session.conexaoServidor.ListeningShowScore();
+            /**
+             * TODO
+             */
+            //Session.conexaoServidor.ListeningShowScore();
             jLabel2.setVisible(false);
             jLabel3.setVisible(false);
             jLabelPlayersRemaing.setVisible(false);

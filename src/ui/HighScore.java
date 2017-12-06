@@ -156,7 +156,10 @@ public class HighScore extends javax.swing.JPanel {
             //IF se esse foi o último, não fazer nada. Deixar a tela morta.
             if (Session.gRunTime.currentRound < Session.gRunTime.qntdRounds) {
                 canStartGameThreadCheck();
-                Session.conexaoServidor.ListeningStartGame();
+                /**
+                 * TODO
+                 */
+                //Session.conexaoServidor.ListeningStartGame();
             }
             jButton1.setVisible(false);
 
