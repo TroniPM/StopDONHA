@@ -319,9 +319,11 @@ public class Servidor {
         private Socket socket;
 
         private User user = null;
+        private String ip = null;
 
         public EchoThread(Socket clientSocket) {
             this.socket = clientSocket;
+            this.ip = socket.getInetAddress().getHostAddress();
         }
 
         public User getUser() {
@@ -340,7 +342,7 @@ public class Servidor {
 
         public void userType(User data) {
             //User data = (User) obj;
-            data.ip = socket.getInetAddress().getHostAddress();
+            data.ip = this.ip;
             Session.addLog("RECEIVED: userType(): [OBJECT] recebido User: " + data.nickname);
             networkClientsSockets.add(socket);
             Session.gRunTime.nicknamesNetwork.add(data.nickname);
@@ -353,6 +355,7 @@ public class Servidor {
 
         public void endRoundType(EndRound obj) {
             Session.addLog("RECEIVED: endRoundType(): [OBJECT] recebido EndRound");
+            obj.ip = this.ip;
             Session.addLog(obj.getRespostasEAceitacao());
 
             DataNetworkManager.respostasRecebidasDoRound.add(obj);
@@ -398,7 +401,7 @@ public class Servidor {
                 return;
             }
             Session.addLog("Conexão recebida " + socket.getRemoteSocketAddress().toString());
-            Session.addLog("Conexão recebida " + socket.getInetAddress().getHostAddress());
+            Session.addLog("Conexão recebida " + this.ip);
 
             byte[] msgBytes = null;
             String msg = null;
@@ -476,7 +479,7 @@ public class Servidor {
                         }//while
 
                         //Mapeio o IP com a ChaveSessao
-                        cs.ip = socket.getInetAddress().getHostAddress();
+                        cs.ip = this.ip;
                         Session.addLog("\n" + cs.toString());
 
                         String response = null;
@@ -509,7 +512,7 @@ public class Servidor {
                         //Procurado ChaveSessao previamente guardada
                         inner:
                         for (ChaveSessao inChaveSessao : arrayChaveSessao) {
-                            if (inChaveSessao.ip.equals(socket.getInetAddress().getHostAddress())) {
+                            if (inChaveSessao.ip.equals(this.ip)) {
                                 cs = inChaveSessao;
                                 break inner;
                             }
@@ -522,12 +525,12 @@ public class Servidor {
                          * CHAVE DO SERVIDOR, E NÃO DO CLIENTE PARA DECRIPTAR
                          */
                         //Caso seja conexão do cliente DENTRO do servidor
-                        if (Methods.isIpFromServidor(socket.getInetAddress().getHostAddress())) {
+                        if (Methods.isIpFromServidor(this.ip)) {
                             Session.addLog("PACKAGE recebido foi do Cliente DENTRO servidor...");
                             cs = Session.security.KEY;
                             autenticacao = cs.AUTENTICACAO_CLIENTE;
                             encriptacao = cs.ENCRIPTACAO_CLIENTE;
-                        } else if (socket.getInetAddress().getHostAddress().equals(Session.masterIP)) {
+                        } else if (this.ip.equals(Session.masterIP)) {
                             //Caso conexão venha do servidor
                             Session.addLog("PACKAGE recebido foi do servidor...");
                             cs = Session.security.KEY;
@@ -554,7 +557,7 @@ public class Servidor {
             if (deserialize.getClass().getName().equals("security.Package")) {
                 security.Package p = (security.Package) deserialize;
 
-                p.tag = socket.getInetAddress().getHostAddress();
+                p.tag = this.ip;
 
                 //Verificando se já recebeu dados desse ip
                 Session.addLog("Verificando se dados recebidos são posteriores aos já recebidos.");
