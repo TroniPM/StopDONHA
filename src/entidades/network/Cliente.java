@@ -85,6 +85,57 @@ public class Cliente {
         }
     }
 
+    /**
+     * Método para criação de Package para envio pela rede.
+     *
+     * @param data dados que serão enviados. NÃO deve estar encriptado.
+     * @param autenticacao chave para autenticação
+     * @param encriptacao chave para encriptação
+     * @param tag tag que será atribuído a classe Package para o casting
+     * @return
+     */
+    public byte[] generatePackage(byte[] data, SecretKey autenticacao,
+            SecretKey encriptacao, String ipFromDestinatiario) {
+        byte[] encryp = Session.security.criptografaSimetrica(data, encriptacao);
+        // Gera Autenticação
+        byte[] auth = null;
+        try {
+            auth = Session.security.autenticacao(encryp, autenticacao);
+        } catch (DataLengthException ex) {
+            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidCipherTextException ex) {
+            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // Cria um Package para enviar
+        security.Package p = null;
+        if (ipFromDestinatiario == null) {
+            p = new security.Package(auth, encryp, ++Session.security.TAG_NUMBER);
+        } else if (Session.security.mensagensEnviadasAClientes.containsKey(ipFromDestinatiario)) {
+            //já enviou dados pra esse ip. Então pego o último número.
+            int get = Session.security.mensagensEnviadasAClientes.get(ipFromDestinatiario);
+            /**
+             * TODO. colocar 0 ao invés de ++get para gerar erro de pacote
+             * anterior ao já enviado.
+             */
+            //p = new security.Package(auth, encryp, 0);
+            p = new security.Package(auth, encryp, ++get);
+            //Atualizo númeração do ip específico.
+            Session.security.mensagensEnviadasAClientes.
+                    put(ipFromDestinatiario, get);
+        } else {
+            //Primeira mensagem a enviar para esse ip
+            p = new security.Package(auth, encryp, 1);
+            Session.security.mensagensEnviadasAClientes.
+                    put(ipFromDestinatiario, 1);
+        }
+
+        // Converte o Package em um array de bytes
+        byte[] d = SerializationUtils.serialize(p);
+
+        return d;
+    }
+
     public boolean startScheme() throws IOException {
         String a = "startScheme: Vai começar scheme em " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
@@ -182,57 +233,6 @@ public class Cliente {
         writeOnOutputStream(socket, data);
         a = "Enviado User [OBJECT] para " + Session.masterIP + ":" + PORT_SERVER;
         Session.addLog(a);
-    }
-
-    /**
-     * Método para criação de Package para envio pela rede.
-     *
-     * @param data dados que serão enviados. NÃO deve estar encriptado.
-     * @param autenticacao chave para autenticação
-     * @param encriptacao chave para encriptação
-     * @param tag tag que será atribuído a classe Package para o casting
-     * @return
-     */
-    public byte[] generatePackage(byte[] data, SecretKey autenticacao,
-            SecretKey encriptacao, String ipFromDestinatiario) {
-        byte[] encryp = Session.security.criptografaSimetrica(data, encriptacao);
-        // Gera Autenticação
-        byte[] auth = null;
-        try {
-            auth = Session.security.autenticacao(encryp, autenticacao);
-        } catch (DataLengthException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidCipherTextException ex) {
-            Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        // Cria um Package para enviar
-        security.Package p = null;
-        if (ipFromDestinatiario == null) {
-            p = new security.Package(auth, encryp, ++Session.security.TAG_NUMBER);
-        } else if (Session.security.mensagensEnviadasAClientes.containsKey(ipFromDestinatiario)) {
-            //já enviou dados pra esse ip. Então pego o último número.
-            int get = Session.security.mensagensEnviadasAClientes.get(ipFromDestinatiario);
-            /**
-             * TODO. colocar 0 ao invés de ++get para gerar erro de pacote
-             * anterior ao já enviado.
-             */
-            //p = new security.Package(auth, encryp, 0);
-            p = new security.Package(auth, encryp, ++get);
-            //Atualizo númeração do ip específico.
-            Session.security.mensagensEnviadasAClientes.
-                    put(ipFromDestinatiario, get);
-        } else {
-            //Primeira mensagem a enviar para esse ip
-            p = new security.Package(auth, encryp, 1);
-            Session.security.mensagensEnviadasAClientes.
-                    put(ipFromDestinatiario, 1);
-        }
-
-        // Converte o Package em um array de bytes
-        byte[] d = SerializationUtils.serialize(p);
-
-        return d;
     }
 
     /**
