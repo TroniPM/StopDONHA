@@ -1,11 +1,9 @@
 package ui;
 
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import util.Session;
 
@@ -16,7 +14,6 @@ import util.Session;
 public class MainMenu extends javax.swing.JPanel {
 
     private Timer threadListeningConnectionKill = new Timer();
-    public JFileChooser fileChooser = new JFileChooser();
 
     /*Thread que vai rodar o programa inteiro. Se houver mudança dessa variável, 
      vai entrar no if, limpar todos os dados e voltar a tela inicial.*/
@@ -140,33 +137,21 @@ public class MainMenu extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        File workingDirectory = new File(System.getProperty("user.dir"));
-        fileChooser.setCurrentDirectory(workingDirectory);
-
-        int i = fileChooser.showSaveDialog(this);
-        Session.addLog("Tentando recuperar certificado do servidor...");
-        if (i != 1) {
-            File certificadoPublico = fileChooser.getSelectedFile();
-            Session.security.chavePublicaSERVIDOR = Session.security.getPublicKeyFromCert(certificadoPublico);
-            //Verifico se chave pública do certificado tá beleza
-            if (Session.security.chavePublicaSERVIDOR != null) {
-                Session.addLog("Certificado recuperado...");
-                Session.gRunTime.currentNickname = JOptionPane.showInputDialog(this, "Digite seu nickname:", Session.nickname);
-                if (Session.gRunTime.currentNickname != null) {
-                    Session.nickname = Session.gRunTime.currentNickname;
-                    String ip = "";
-                    ip = JOptionPane.showInputDialog(this, "Digite o ip da Sala:", "192.168.0.104");
-                    if (ip == null) {
-                        JOptionPane.showMessageDialog(this, "IP inválido.");
-                    } else {
-                        Session.masterIP = ip;
-                        Session.JFramePrincipal.changeScreen(new WaitingRoom(false));
-                    }
+        if (Session.security.getPublicKeyServerFromFile()) {
+            Session.gRunTime.currentNickname = JOptionPane.showInputDialog(this, "Digite seu nickname:", Session.nickname);
+            if (Session.gRunTime.currentNickname != null) {
+                Session.nickname = Session.gRunTime.currentNickname;
+                String ip = "";
+                ip = JOptionPane.showInputDialog(this, "Digite o ip da Sala:", "192.168.0.104");
+                if (ip == null) {
+                    JOptionPane.showMessageDialog(this, "IP inválido.");
+                } else {
+                    Session.masterIP = ip;
+                    Session.JFramePrincipal.changeScreen(new WaitingRoom(false));
                 }
-            } else {
-                Session.addLog("Erro ao recuperar certificado servidor. Não permitir acesso a rede.");
             }
+        } else {
+            JOptionPane.showMessageDialog(this, "Não foi possível encontrar a chave pública do Servidor.");
         }
     }//GEN-LAST:event_jButton6ActionPerformed
 

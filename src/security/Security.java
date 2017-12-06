@@ -1,7 +1,8 @@
 package security;
 
-import java.io.File;
+import java.security.SecureRandom;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -12,24 +13,21 @@ import org.bouncycastle.crypto.paddings.PKCS7Padding;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import entidades.network.sendible.User;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Enumeration;
+import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.Cipher;
+import org.apache.commons.lang3.SerializationUtils;
+import util.Methods;
 import util.Session;
 
 /**
@@ -38,21 +36,22 @@ import util.Session;
  */
 public class Security {
 
-    //public static final String chave_this_public_path = "./public_this.stopdonha";
-    //public static final String chave_this_private_path = "./private_this.stopdonha";
-    //public static final String chave_server_public_path = "./certificate/self_public.cer";
+    public static final String chave_this_public_path = "./key_this_pub.txt";
+    public static final String chave_this_private_path = "./key_this_pri.txt";
+    public static final String chave_server_public_path = "./public.der";
+    public static final String chave_server_private_path = "./private.der";
+
     private static final String param1 = "RSA";
 
     public PublicKey chavePublicaSERVIDOR = null;
-    //public PublicKey chavePublicaTHIS = null;
-    public PrivateKey chavePrivadaTHIS = null;
+    public PrivateKey chavePrivadaSERVIDOR = null;
 
     public String TAG = null;
     public int TAG_NUMBER = 1;
+    //Ips e numeração
+    public Map<String, Integer> mensagensEnviadasAClientes = new HashMap<String, Integer>();
 
     public ChaveSessao KEY;
-    public static File certificado = null;
-    public static String certificadoSenha = null;
 
     public byte[] criptografaSimetrica(byte[] data, SecretKey secret) {
         try {
@@ -147,6 +146,43 @@ public class Security {
         return out;
     }
 
+    public boolean getPublicKeyServerFromFile() {
+        if (Methods.fileExists(chave_server_public_path)) {
+            Session.addLog("Recuperando Chave Pública do servidor...");
+            try {
+                chavePublicaSERVIDOR = Methods.readPublicKey(chave_server_public_path);
+                Session.addLog("Chave Pública do servidor recuperada com sucesso.");
+                return true;
+            } catch (Exception ex) {
+                Session.addLog("Erro ao recuperar Chave Pública do servidor.");
+            }
+        } else {
+            Session.addLog("Chave Pública do servidor não existe...");
+        }
+
+        if (Methods.fileExists(chave_server_private_path)) {
+            Session.addLog("Recuperando Chave Privada do servidor...");
+            try {
+                chavePrivadaSERVIDOR = Methods.readPrivateKey(chave_server_private_path);
+                Session.addLog("Chave Privada do servidor recuperada com sucesso.");
+            } catch (Exception ex) {
+                Session.addLog("Erro ao recuperar Chave Privada do servidor.");
+            }
+        } else {
+            Session.addLog("Chave Privada do servidor não existe...");
+        }
+
+        return false;
+    }
+
+    public void init() throws UnknownHostException {
+        Session.addLog("Adicionando provider ao java.security.Security...");
+        java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+
+        TAG = Inet4Address.getLocalHost().getHostAddress();
+        TAG_NUMBER = 0;
+    }
+
     public static byte[] criptografaAssimetrica(byte[] texto, PublicKey chave) {
         byte[] cipherText = null;
 
@@ -179,127 +215,50 @@ public class Security {
         return dectyptedText;
     }
 
-    public void init() throws UnknownHostException {
-        Session.addLog("Adicionando provider ao java.security.Security...");
+    public static void main(String[] args) {
         java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-
-        TAG = Inet4Address.getLocalHost().getHostAddress();
-        TAG_NUMBER = 0;
-    }
-
-    public PrivateKey getPrivateKeyFromCert(String path, String senha) {
-        PrivateKey pKey = null;
+        PublicKey publicKey = null;
+        PrivateKey privateKey = null;
         try {
-            KeyStore p12 = KeyStore.getInstance("pkcs12");
-            p12.load(new FileInputStream(path), senha.toCharArray());
-            Enumeration e = p12.aliases();
-            String alias = (String) e.nextElement();
-            pKey = (PrivateKey) p12.getKey(alias, senha.toCharArray());
-
-        } catch (KeyStoreException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+            publicKey = Methods.readPublicKey("public.der");
+            privateKey = Methods.readPrivateKey("private.der");
         } catch (IOException ex) {
             Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (CertificateException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (UnrecoverableKeyException ex) {
+        } catch (InvalidKeySpecException ex) {
             Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        return pKey;
-    }
-
-    public PublicKey getPublicKeyFromCert(String path) {
-        PublicKey pk = null;
+        //ChaveSessao cs = new ChaveSessao();
         try {
-            FileInputStream fin = new FileInputStream(path);
-            CertificateFactory f = CertificateFactory.getInstance("X.509");
-            X509Certificate certificate = (X509Certificate) f.generateCertificate(fin);
-            pk = certificate.getPublicKey();
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (CertificateException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return pk;
-    }
 
-    public PublicKey getPublicKeyFromCert(File path) {
-        PublicKey pk = null;
-        try {
-            FileInputStream fin = new FileInputStream(path);
-            CertificateFactory f = CertificateFactory.getInstance("X.509");
-            X509Certificate certificate = (X509Certificate) f.generateCertificate(fin);
-            pk = certificate.getPublicKey();
+            User u = new User("nome_de_usuario", 100, "192.168.0.5");
+            byte[] convertToByteArray = SerializationUtils.serialize(u);
+
+            KeyGenerator keygenerator = KeyGenerator.getInstance("AES");
+            keygenerator.init(256, new SecureRandom());
+            SecretKey generateKey = keygenerator.generateKey();
+
+            KeyEncriptacaoCliente kec = new KeyEncriptacaoCliente(generateKey);
+            KeyEncriptacaoServidor kes = new KeyEncriptacaoServidor(generateKey);
+
+            byte[] p1 = SerializationUtils.serialize(kec);
+            System.out.println(p1.length);
+            //byte[] p1 = generateKey.getEncoded();
+            //byte[] p1 = u.convertToByteArray();
+            byte[] e1 = criptografaAssimetrica(p1, publicKey);
+            //byte[] e2 = _encrypt(CHAVE, chavePublica.getEncoded());
+            byte[] d1 = decriptografiaAssimetrica(e1, privateKey);
+            for (int i = 0; i < p1.length; i++) {
+                System.out.println(p1[i] + ":" + d1[i]);
+            }
+
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
+
         } catch (Exception ex) {
             Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return pk;
-    }
-
-    public boolean checkPasswordFromCert(String path, String senha) {
-        PrivateKey pKey = null;
-        try {
-            KeyStore p12 = KeyStore.getInstance("pkcs12");
-            p12.load(new FileInputStream(path), senha.toCharArray());
-            Enumeration e = p12.aliases();
-            String alias = (String) e.nextElement();
-            pKey = (PrivateKey) p12.getKey(alias, senha.toCharArray());
-
-            if (pKey != null) {
-                return true;
-            }
-
-        } catch (KeyStoreException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (CertificateException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (UnrecoverableKeyException ex) {
-            Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return false;
-    }
-
-    public boolean checkValidity(String path, String senha) {
-        try {
-            KeyStore p12 = KeyStore.getInstance("pkcs12");
-            p12.load(new FileInputStream(path), senha.toCharArray());
-            Enumeration e = p12.aliases();
-            String alias = (String) e.nextElement();
-            /*if (p12.getCertificate(alias).getType().equals("X.509")) {
-                System.out.println(alias + " expires "
-                        + ((X509Certificate) p12.getCertificate(alias)).getNotAfter());
-            }*/
-
-            //Date d = new Date();
-            //d.setYear(2030);
-            ((X509Certificate) p12.getCertificate(alias)).checkValidity();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public static void main(String[] args) {
-        Security s = new Security();
-        PrivateKey privateKeyFromCert = s.getPrivateKeyFromCert("./certificate/self_pkcs12.p12", "password");
-        PublicKey publicKeyFromCert = s.getPublicKeyFromCert("./certificate/self_public.cer");
-
-        String a = "texto1 normal a ser encriptadoáéíóLoÇô";
-        System.out.println("NORMAL: " + a);
-
-        byte[] criptografaAssimetrica = Security.criptografaAssimetrica(a.getBytes(), publicKeyFromCert);
-        System.out.println("ENCRIP: " + criptografaAssimetrica);
-
-        byte[] decriptografiaAssimetrica = Security.decriptografiaAssimetrica(criptografaAssimetrica, privateKeyFromCert);
-        System.out.println("DECRIP: " + new String(decriptografiaAssimetrica));
     }
 }

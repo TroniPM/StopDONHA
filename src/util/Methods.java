@@ -10,18 +10,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.StringWriter;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 /**
  *
@@ -35,7 +39,7 @@ public class Methods {
      * @param content
      * @param append
      */
-    public static void writeOnFile(String path, byte[] content, boolean append) {
+    public static void writeOnFile(String path, String content, boolean append) {
         FileOutputStream fop = null;
         File file;
         try {
@@ -46,8 +50,8 @@ public class Methods {
                 file.createNewFile();
             }
             //pega o content em bytes
-            //byte[] contentInBytes = content.getBytes();
-            fop.write(content);
+            byte[] contentInBytes = content.getBytes();
+            fop.write(contentInBytes);
             //flush serve para garantir o envio do último lote de bytes
             fop.flush();
             fop.close();
@@ -114,14 +118,6 @@ public class Methods {
         return null;
     }
 
-    private static String encode(byte[] b) {
-        return Base64.encode(b);
-    }
-
-    private static byte[] decode(String b) {
-        return Base64.decode(b);
-    }
-
     public static String convertToString(Object obj) {
         try {
             String str;
@@ -129,7 +125,7 @@ public class Methods {
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(obj);
             byte[] objeto = baos.toByteArray();
-            str = encode(objeto);
+            str = Base64.encode(objeto);
             oos.close();
             return str;
         } catch (IOException e) {
@@ -151,7 +147,7 @@ public class Methods {
 
     public static Object convertFromString(String str) throws ClassNotFoundException {
         try {
-            ByteArrayInputStream bais = new ByteArrayInputStream(decode(str));
+            ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decode(str));
             ObjectInputStream ois = new ObjectInputStream(bais);
             return ois.readObject();
         } catch (IOException e) {
@@ -189,7 +185,7 @@ public class Methods {
     }
 
     public static String getAvaliableIps() {
-        String retorno = "";
+        String ret = "";
         try {
             Enumeration e = NetworkInterface.getNetworkInterfaces();
             while (e.hasMoreElements()) {
@@ -198,45 +194,35 @@ public class Methods {
                 while (ee.hasMoreElements()) {
                     InetAddress i = (InetAddress) ee.nextElement();
                     //System.out.println(i.getHostAddress());
-                    retorno += "'" + i.getHostAddress() + "'";
+                    ret += "'" + i.getHostAddress() + "'";
                     if (ee.hasMoreElements()) {
-                        retorno += ", ";
+                        ret += " ou ";
                     }
                 }
-
-                String substring = retorno.substring(retorno.length() - 1);
-                if (substring.equals("'")) {
-                    retorno += ", ";
+                if (e.hasMoreElements()) {
+                    ret += " ou ";
                 }
             }
         } catch (Exception e) {
         }
-        if (retorno.length() > 0) {
-            retorno = retorno.substring(0, retorno.length() - 1);
-        }
 
-        return retorno;
+        return ret;
     }
 
-    public static byte[] readFileBytes(String filename) throws IOException {
+    private static byte[] readFileBytes(String filename) throws IOException {
         Path path = Paths.get(filename);
         return Files.readAllBytes(path);
     }
 
-    public static void print(Object p) {
-        if (p instanceof PrivateKey) {
-            StringWriter sw = new StringWriter();
-            JcaPEMWriter writer = new JcaPEMWriter(sw);
-            try {
-                writer.writeObject(p);
-                writer.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Methods.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            System.out.println(sw.getBuffer().toString());
-        } else {
-            System.out.println(p);
-        }
+    public static PublicKey readPublicKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(readFileBytes(filename));
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return keyFactory.generatePublic(publicSpec);
+    }
 
+    public static PrivateKey readPrivateKey(String filename) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(readFileBytes(filename));
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return keyFactory.generatePrivate(keySpec);
     }
 }

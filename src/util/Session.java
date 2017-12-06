@@ -4,9 +4,7 @@ import entidades.GameRuntime;
 import entidades.network.Cliente;
 import entidades.network.DataNetworkManager;
 import entidades.network.Servidor;
-import java.io.File;
 import security.Security;
-import ui.GameScreenConfigGame;
 import ui.JFramePrincipal;
 
 /**
@@ -60,10 +58,6 @@ public class Session {
 
         conexaoCliente = new Cliente();
         conexaoServidor = new Servidor();
-
-        GameScreenConfigGame.certificadoSelecionado = false;
-        Security.certificado = null;
-        Security.certificadoSenha = null;
     }
 
     public static JFramePrincipal JFramePrincipal;

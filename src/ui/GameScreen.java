@@ -130,10 +130,7 @@ public class GameScreen extends javax.swing.JPanel {
             }
 
             //Litener para receber respostas de jogadores
-            /**
-             * TODO
-             */
-            //Session.conexaoServidor.ListeningEndRoundToValidate();
+            Session.conexaoServidor.ListeningEndRoundToValidate();
         }
     }
 

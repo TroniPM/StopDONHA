@@ -5,6 +5,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import entidades.network.sendible.User;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import util.Session;
 
 /**
@@ -29,6 +35,22 @@ public class GameRuntime implements Serializable {
      * Nomes dos jogadores.
      */
     public ArrayList<String> nicknamesNetwork = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        String i = "";
+        for (String in : itens) {
+            i += in + ", ";
+        }
+        String n = "";
+        for (String in : nicknamesNetwork) {
+            n += in + ", ";
+        }
+
+        return "\nPONTO_POR_ACERTO: " + PONTO_POR_ACERTO
+                + "\nPONTO_BONIFICACAO_POR_VELOCIDADE: " + PONTO_BONIFICACAO_POR_VELOCIDADE
+                + "\nITENS: " + i + "\nUSUÁRIOS: " + n;
+    }
 
     public int currentRound = 1;
     public String currentLetra = "";

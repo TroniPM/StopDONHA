@@ -27,10 +27,10 @@ public class ChaveSessao implements Serializable {
 
     @Override
     public String toString() {
-        return "ENCRIPTACAO_CLIENTE: " + ENCRIPTACAO_CLIENTE
+        return "\nENCRIPTACAO_CLIENTE: " + ENCRIPTACAO_CLIENTE
                 + "\nENCRIPTACAO_SERVIDOR: " + ENCRIPTACAO_SERVIDOR
                 + "\nAUTENTICACAO_SERVIDOR: " + AUTENTICACAO_SERVIDOR
-                + "\nAUTENTICACAO_CLIENTE: " + AUTENTICACAO_CLIENTE;
+                + "\nAUTENTICACAO_CLIENTE" + AUTENTICACAO_CLIENTE;
     }
 
     public ChaveSessao(boolean t) {
@@ -55,10 +55,5 @@ public class ChaveSessao implements Serializable {
                 Logger.getLogger(Security.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }
-
-    public boolean isValid() {
-        return AUTENTICACAO_SERVIDOR != null && AUTENTICACAO_CLIENTE != null
-                && ENCRIPTACAO_SERVIDOR != null && ENCRIPTACAO_CLIENTE != null;
     }
 }
