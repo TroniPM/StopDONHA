@@ -239,7 +239,7 @@ public class Cliente {
         } else if (Session.security.mensagensEnviadasAClientes.containsKey(ipFromDestinatiario)) {
             //já enviou dados pra esse ip. Então pego o último número.
             int get = Session.security.mensagensEnviadasAClientes.get(ipFromDestinatiario);
-            p = new security.Package(auth, encryp, 0);
+            p = new security.Package(auth, encryp, ++get);
             //Atualizo númeração do ip específico.
             Session.security.mensagensEnviadasAClientes.
                     put(ipFromDestinatiario, get);
